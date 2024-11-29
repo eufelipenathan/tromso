@@ -1,44 +1,93 @@
-export const validateCNPJ = (cnpj: string): boolean => {
-  cnpj = cnpj.replace(/[^\d]/g, '');
+import { Company } from '@/types';
+import { validateCNPJ, validateEmail, validatePhone, validateCEP } from '@/utils/validators';
 
-  if (cnpj.length !== 14) return false;
-  if (/^(\d)\1+$/.test(cnpj)) return false;
+interface ValidationResult {
+  isValid: boolean;
+  errors: Record<string, string>;
+}
 
-  let sum = 0;
-  let pos = 5;
+interface FieldValidationResult {
+  isValid: boolean;
+  error?: string;
+}
 
-  for (let i = 0; i < 12; i++) {
-    sum += parseInt(cnpj.charAt(i)) * pos--;
-    if (pos < 2) pos = 9;
+export function validateField(field: string, value: any): FieldValidationResult {
+  console.log('[validateField] Validating field:', { field, value });
+
+  // Required fields
+  if (field === 'name' && (!value || !value.trim())) {
+    return { isValid: false, error: 'Nome é obrigatório' };
   }
 
-  let result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
-  if (result !== parseInt(cnpj.charAt(12))) return false;
-
-  sum = 0;
-  pos = 6;
-
-  for (let i = 0; i < 13; i++) {
-    sum += parseInt(cnpj.charAt(i)) * pos--;
-    if (pos < 2) pos = 9;
+  // Optional fields with format validation
+  if (value) {
+    switch (field) {
+      case 'cnpj':
+        return {
+          isValid: validateCNPJ(value),
+          error: 'CNPJ inválido'
+        };
+      
+      case 'website':
+        const urlPattern = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}$/;
+        return {
+          isValid: urlPattern.test(value),
+          error: 'Website inválido'
+        };
+      
+      case 'address.cep':
+        return {
+          isValid: validateCEP(value),
+          error: 'CEP inválido'
+        };
+    }
   }
 
-  result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
-  return result === parseInt(cnpj.charAt(13));
-};
+  return { isValid: true };
+}
 
-export const validateEmail = (email: string): boolean => {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(email);
-};
+export function validateCompany(data: Partial<Company>): ValidationResult {
+  console.log('[validateCompany] Validating company data:', data);
+  
+  const errors: Record<string, string> = {};
 
-export const validatePhone = (phone: string): boolean => {
-  const cleaned = phone.replace(/\D/g, '');
-  return cleaned.length >= 10 && cleaned.length <= 11;
-};
+  // Required fields
+  if (!data.name?.trim()) {
+    errors.name = 'Nome é obrigatório';
+  }
 
-export const validateWebsite = (url: string): boolean => {
-  if (!url) return true;
-  const pattern = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}$/;
-  return pattern.test(url);
-};
+  // Optional fields with format validation
+  if (data.cnpj && !validateCNPJ(data.cnpj)) {
+    errors.cnpj = 'CNPJ inválido';
+  }
+
+  if (data.phones?.some(phone => !validatePhone(phone.value))) {
+    errors.phones = 'Um ou mais telefones são inválidos';
+  }
+
+  if (data.emails?.some(email => !validateEmail(email.value))) {
+    errors.emails = 'Um ou mais e-mails são inválidos';
+  }
+
+  if (data.website) {
+    const urlPattern = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}$/;
+    if (!urlPattern.test(data.website)) {
+      errors.website = 'Website inválido';
+    }
+  }
+
+  // Address validation
+  if (data.address) {
+    if (data.address.cep && !validateCEP(data.address.cep)) {
+      errors['address.cep'] = 'CEP inválido';
+    }
+  }
+
+  const result = {
+    isValid: Object.keys(errors).length === 0,
+    errors
+  };
+
+  console.log('[validateCompany] Validation result:', result);
+  return result;
+}

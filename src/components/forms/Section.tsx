@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface SectionProps {
@@ -12,33 +12,20 @@ interface SectionProps {
 const Section: React.FC<SectionProps> = ({ 
   title, 
   children, 
-  defaultOpen,
-  hasErrors,
+  defaultOpen = false,
+  hasErrors = false,
   onOpen
 }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen ?? title === 'Informações Básicas');
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  // Expande a seção automaticamente se houver erros
-  React.useEffect(() => {
-    if (hasErrors && !isOpen) {
-      setIsOpen(true);
-      onOpen?.();
-      
-      // Scroll para a seção
-      setTimeout(() => {
-        sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-    }
-  }, [hasErrors, isOpen, onOpen]);
+  const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div ref={sectionRef} className="border rounded-lg overflow-hidden mb-4">
+    <div className="border rounded-lg overflow-hidden mb-4">
       <button
         type="button"
         className={`
-          w-full px-4 py-3 flex items-center justify-between transition-colors
+          relative w-full px-4 py-3 flex items-center justify-between transition-colors z-10
           ${hasErrors ? 'bg-red-50 hover:bg-red-100' : 'bg-gray-50 hover:bg-gray-100'}
+          focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-0 rounded-lg
         `}
         onClick={() => {
           setIsOpen(!isOpen);
