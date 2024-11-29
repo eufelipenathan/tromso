@@ -1,0 +1,1 @@
+export { useInlineStyles } from './useInlineStyles';
