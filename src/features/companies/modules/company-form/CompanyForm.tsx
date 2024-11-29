@@ -167,7 +167,7 @@ export function CompanyForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -177,7 +177,7 @@ export function CompanyForm({
 
   const handleCEPChange = async (cep: string) => {
     const cleanedCEP = cep.replace(/\D/g, '');
-    
+
     if (cleanedCEP.length === 8) {
       try {
         const response = await fetch(`https://viacep.com.br/ws/${cleanedCEP}/json/`);
@@ -257,7 +257,7 @@ export function CompanyForm({
             <input
               type="text"
               value={currentCompany.name || ''}
-              onChange={(e) => setCurrentCompany({ ...currentCompany, name: e.target.value })}
+              onChange={(e) => setCurrentCompany(prev => ({ ...prev, name: e.target.value }))}
               className={`
                 block w-full rounded-md border shadow-sm text-sm h-12 px-4
                 ${formErrors.name 
@@ -278,7 +278,7 @@ export function CompanyForm({
             <input
               type="text"
               value={currentCompany.legalName || ''}
-              onChange={(e) => setCurrentCompany({ ...currentCompany, legalName: e.target.value })}
+              onChange={(e) => setCurrentCompany(prev => ({ ...prev, legalName: e.target.value }))}
               className="block w-full rounded-md border border-gray-300 shadow-sm text-sm h-12 px-4 focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
@@ -290,7 +290,7 @@ export function CompanyForm({
             <input
               type="text"
               value={currentCompany.cnpj || ''}
-              onChange={(e) => setCurrentCompany({ ...currentCompany, cnpj: e.target.value })}
+              onChange={(e) => setCurrentCompany(prev => ({ ...prev, cnpj: e.target.value }))}
               maxLength={18}
               placeholder="00.000.000/0000-00"
               className={`
@@ -313,7 +313,7 @@ export function CompanyForm({
             <input
               type="text"
               value={currentCompany.website || ''}
-              onChange={(e) => setCurrentCompany({ ...currentCompany, website: e.target.value })}
+              onChange={(e) => setCurrentCompany(prev => ({ ...prev, website: e.target.value }))}
               placeholder="exemplo.com"
               className={`
                 block w-full rounded-md border shadow-sm text-sm h-12 px-4

@@ -8,7 +8,6 @@ import { ContactList } from '@/features/contacts/components/ContactList';
 import Modal from '@/components/Modal';
 import PageHeader from '@/components/PageHeader';
 import Button from '@/components/Button';
-import CompanyForm from '@/components/forms/CompanyForm';
 import LoadingState from '@/components/LoadingState';
 
 function Contacts() {

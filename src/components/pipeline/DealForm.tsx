@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Deal, Pipeline } from '@/types/pipeline';
 import { Company, Contact } from '@/types';
-import { dealConfig } from '@/lib/entity-management/configs/dealConfig';
 import Modal from '../Modal';
 import Form from '../forms/Form';
 import Button from '../Button';
 import ValidationInput from '../forms/ValidationInput';
 import CompanySelect from '../forms/CompanySelect';
 import ContactSelect from '../forms/ContactSelect';
-import CompanyForm from '../forms/CompanyForm';
 import ContactForm from '../forms/ContactForm';
 
 interface DealFormProps {
