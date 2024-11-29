@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Company } from '@/types';
 import { useCompanies } from '@/hooks/companies';
 import { useGridPreferences } from '@/hooks/useGridPreferences';
-import { CompanyForm } from '@/features/companies/components/CompanyForm';
+import { CompanyForm } from '@/features/companies/modules/company-form';
 import { CompanyList } from '@/features/companies/components/CompanyList';
 import Modal from '@/components/Modal';
 import PageHeader from '@/components/PageHeader';
