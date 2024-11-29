@@ -1,0 +1,87 @@
+{
+  "project": {
+    "name": "crm-firebase",
+    "type": "react",
+    "framework": "vite"
+  },
+  "code": {
+    "structure": {
+      "maxLinesPerFile": 300,
+      "componentStructure": {
+        "component": "Component.tsx",
+        "logic": "useComponent.ts",
+        "styles": "Component.styles.ts",
+        "types": "Component.types.ts"
+      },
+      "directories": {
+        "components": {
+          "path": "src/components",
+          "structure": {
+            "base": "Base components",
+            "forms": "Form components",
+            "layout": "Layout components",
+            "ui": "UI components"
+          }
+        },
+        "hooks": {
+          "path": "src/hooks",
+          "structure": {
+            "form": "Form related hooks",
+            "ui": "UI related hooks",
+            "data": "Data fetching hooks"
+          }
+        },
+        "lib": {
+          "path": "src/lib",
+          "structure": {
+            "core": "Core functionality",
+            "utils": "Utility functions",
+            "config": "Configuration files"
+          }
+        }
+      }
+    },
+    "patterns": {
+      "naming": {
+        "components": "PascalCase",
+        "hooks": "camelCase",
+        "utils": "camelCase",
+        "types": "PascalCase"
+      },
+      "imports": {
+        "order": [
+          "react",
+          "external",
+          "internal-lib",
+          "internal-components",
+          "internal-hooks",
+          "internal-utils",
+          "styles"
+        ]
+      }
+    }
+  },
+  "style": {
+    "tailwind": {
+      "customization": {
+        "colors": true,
+        "spacing": true,
+        "typography": true
+      },
+      "plugins": [
+        "tailwindcss-animate"
+      ]
+    }
+  },
+  "dependencies": {
+    "required": {
+      "react": "^18.3.1",
+      "react-dom": "^18.3.1",
+      "react-router-dom": "^6.22.2",
+      "firebase": "^10.8.0",
+      "lucide-react": "^0.344.0",
+      "tailwindcss": "^3.4.1",
+      "typescript": "^5.5.3"
+    }
+  }
+}
