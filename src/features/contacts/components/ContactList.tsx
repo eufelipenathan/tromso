@@ -1,14 +1,10 @@
-import React, { useCallback, useMemo, useState, useRef } from 'react';
-import { AgGridReact } from 'ag-grid-react';
-import { ColDef, GridOptions } from 'ag-grid-community';
+import React, { useState, useMemo } from 'react';
+import { DataGrid } from '@mui/x-data-grid';
+import { ThemeProvider } from '@mui/material/styles';
 import { Contact, Company } from '@/types';
-import { formatDate } from '@/utils/dates';
-import { Search } from 'lucide-react';
-import { ActionsRenderer } from './grid/ActionsRenderer';
-import { ContactFieldRenderer } from './grid/ContactFieldRenderer';
-
-import '@ag-grid-community/styles/ag-grid.css';
-import '@ag-grid-community/styles/ag-theme-alpine.css';
+import { getContactColumns } from './columns';
+import { gridTheme } from '@/components/grid/theme';
+import { SearchField } from '@/components/grid';
 
 interface ContactListProps {
   contacts: Contact[];

@@ -11,16 +11,17 @@ import {
 import { ThemeProvider } from '@mui/material/styles';
 import { TextField, InputAdornment } from '@mui/material';
 import { Search } from 'lucide-react';
-import { Company } from '@/types';
-import { getCompanyColumns } from './columns';
+import { Contact, Company } from '@/types';
+import { getContactColumns } from './columns';
 import { gridTheme } from '@/components/grid/theme';
 
-interface CompanyListProps {
+interface ContactListProps {
+  contacts: Contact[];
   companies: Company[];
   preferences?: any;
   onPreferencesChange?: (prefs: any) => void;
-  onEdit: (company: Company) => void;
-  onDelete: (company: Company) => void;
+  onEdit: (contact: Contact) => void;
+  onDelete: (contact: Contact) => void;
 }
 
 function CustomToolbar() {
@@ -55,18 +56,19 @@ function CustomToolbar() {
   );
 }
 
-export function CompanyList({
+export function ContactList({
+  contacts,
   companies,
   onEdit,
   onDelete
-}: CompanyListProps) {
-  const columns = getCompanyColumns(onEdit, onDelete);
+}: ContactListProps) {
+  const columns = getContactColumns(companies, onEdit, onDelete);
 
   return (
     <ThemeProvider theme={gridTheme}>
       <div className="h-[600px] w-full bg-white">
         <DataGrid
-          rows={companies}
+          rows={contacts}
           columns={columns}
           initialState={{
             pagination: {
