@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, updateDoc, doc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from './useAuth';
 import { GridPreferences } from '@/types/grid';
@@ -52,51 +52,68 @@ export function useGridPreferences(pageId: string) {
     try {
       startLoading(loadingKey);
 
-      // Se não houver preferências para salvar e não existir documento,
-      // não precisa fazer nada
-      if (Object.keys(newPreferences).length === 0 && !preferences?.id) {
-        return;
+      // Clean up preferences data for Firestore
+      const cleanPreferences = {
+        ...newPreferences,
+        userId: user.uid,
+        pageId,
+        updatedAt: serverTimestamp()
+      };
+
+      // Clean up columns data
+      if (cleanPreferences.columns) {
+        cleanPreferences.columns = cleanPreferences.columns.map(col => ({
+          key: col.key,
+          visible: Boolean(col.visible),
+          order: Number(col.order) || 0,
+          width: col.width ? Number(col.width) : null
+        }));
       }
 
-      // Remove undefined values and empty arrays
-      const cleanPreferences = Object.entries(newPreferences).reduce((acc, [key, value]) => {
-        if (value === undefined) return acc;
-        if (Array.isArray(value) && value.length === 0) return acc;
-        return { ...acc, [key]: value };
-      }, {});
+      // Clean up sortBy data
+      if (cleanPreferences.sortBy) {
+        cleanPreferences.sortBy = {
+          key: String(cleanPreferences.sortBy.key),
+          direction: cleanPreferences.sortBy.direction === 'asc' ? 'asc' : 'desc'
+        };
+      }
 
-      // Se houver um documento existente
+      // Clean up filters data
+      if (cleanPreferences.filters) {
+        cleanPreferences.filters = cleanPreferences.filters.map(filter => ({
+          key: String(filter.key),
+          operator: String(filter.operator),
+          value: String(filter.value)
+        }));
+      }
+
+      // If there's an existing document
       if (preferences?.id) {
-        // Se não houver preferências para salvar, exclui o documento
-        if (Object.keys(cleanPreferences).length === 0) {
+        // If no preferences to save, delete the document
+        if (Object.keys(newPreferences).length === 0) {
           await deleteDoc(doc(db, 'gridPreferences', preferences.id));
           setPreferences(null);
         } else {
-          // Atualiza o documento existente
-          await updateDoc(doc(db, 'gridPreferences', preferences.id), {
-            ...cleanPreferences,
-            userId: user.uid,
-            pageId
-          });
+          // Update existing document
+          await updateDoc(doc(db, 'gridPreferences', preferences.id), cleanPreferences);
         }
-      } else if (Object.keys(cleanPreferences).length > 0) {
-        // Cria um novo documento apenas se houver preferências para salvar
+      } else if (Object.keys(newPreferences).length > 0) {
+        // Create new document only if there are preferences to save
         const docRef = await addDoc(collection(db, 'gridPreferences'), {
           ...cleanPreferences,
-          userId: user.uid,
-          pageId
+          createdAt: serverTimestamp()
         });
         
-        // Atualiza o estado com o novo ID
+        // Update local state with new ID
         setPreferences({
           id: docRef.id,
           userId: user.uid,
           pageId,
-          ...cleanPreferences
+          ...newPreferences
         } as GridPreferences);
       }
 
-      // Recarrega as preferências para garantir sincronização
+      // Reload preferences to ensure synchronization
       await loadPreferences();
     } catch (error) {
       console.error('Error saving grid preferences:', error);

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useUI } from './useUI';
 
 interface OptimisticUpdateOptions<T> {
@@ -45,6 +45,12 @@ export function useOptimisticUpdate<T>() {
         onSuccess(optimisticValue);
       }
 
+      // Important: Stop loading here after success
+      if (loadingKey) {
+        stopLoading(loadingKey);
+        console.log('[useOptimisticUpdate] Stopped loading state:', loadingKey);
+      }
+
       return result;
     } catch (error) {
       console.error('[useOptimisticUpdate] Error during update:', error);
@@ -55,13 +61,15 @@ export function useOptimisticUpdate<T>() {
         onError?.(error as Error);
       }
 
+      // Important: Stop loading here after error
+      if (loadingKey) {
+        stopLoading(loadingKey);
+        console.log('[useOptimisticUpdate] Stopped loading state after error:', loadingKey);
+      }
+
       // Re-throw for caller handling
       throw error;
     } finally {
-      if (loadingKey) {
-        stopLoading(loadingKey);
-        console.log('[useOptimisticUpdate] Stopped loading state:', loadingKey);
-      }
       setPreviousValue(null);
       console.log('[useOptimisticUpdate] Cleanup complete');
     }

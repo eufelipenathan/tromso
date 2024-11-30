@@ -4,7 +4,7 @@ import { useAuth } from './hooks/useAuth';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Layout from './components/Layout';
-import Companies from './pages/Companies';
+import { Companies } from './features/companies';
 import Contacts from './pages/Contacts';
 import CustomFields from './pages/CustomFields';
 import Deals from './pages/Deals';

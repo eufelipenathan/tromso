@@ -26,6 +26,46 @@
     --radius: 0.5rem;
   }
 
+  /* AG Grid Theme Overrides */
+  .ag-theme-alpine {
+    --ag-font-family: inherit;
+    --ag-font-size: 14px;
+    --ag-header-height: 48px;
+    --ag-row-height: 48px;
+    --ag-header-foreground-color: theme('colors.gray.700');
+    --ag-header-background-color: theme('colors.gray.50');
+    --ag-odd-row-background-color: theme('colors.white');
+    --ag-row-border-color: theme('colors.gray.200');
+    --ag-cell-horizontal-padding: theme('spacing.6');
+    --ag-selected-row-background-color: theme('colors.blue.50');
+    --ag-row-hover-color: theme('colors.gray.50');
+    --ag-column-hover-color: theme('colors.gray.50');
+    --ag-input-focus-border-color: theme('colors.blue.500');
+    --ag-range-selection-border-color: theme('colors.blue.500');
+    --ag-range-selection-background-color: theme('colors.blue.500' / 0.1);
+    --ag-border-color: theme('colors.gray.200');
+  }
+
+  .ag-theme-alpine .ag-header-cell {
+    @apply font-medium;
+  }
+
+  .ag-theme-alpine .ag-cell {
+    @apply text-gray-900;
+  }
+
+  .ag-theme-alpine .ag-row-hover {
+    @apply bg-gray-50;
+  }
+
+  .ag-theme-alpine .ag-cell-focus {
+    @apply border-none outline-none;
+  }
+
+  .ag-theme-alpine .ag-cell-no-focus {
+    @apply border-none outline-none;
+  }
+
   /* Scrollbar Styles */
   ::-webkit-scrollbar {
     @apply w-2 h-2;

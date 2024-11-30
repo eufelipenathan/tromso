@@ -2,7 +2,6 @@ export * from './useUI';
 export * from './useApp';
 export * from './useDeals';
 export * from './usePipelines';
-export * from './companies';
 export * from './useContacts';
 export * from './useOptimisticUpdate';
 export * from './useEntityState';

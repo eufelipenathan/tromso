@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Deal, Pipeline } from '@/types/pipeline';
 import { Company, Contact } from '@/types';
-import Modal from '../Modal';
-import Form from '../forms/Form';
-import Button from '../Button';
-import ValidationInput from '../forms/ValidationInput';
-import CompanySelect from '../forms/CompanySelect';
-import ContactSelect from '../forms/ContactSelect';
-import ContactForm from '../forms/ContactForm';
+import Modal from '@/components/Modal';
+import Form from '@/components/forms/Form';
+import Button from '@/components/Button';
+import ValidationInput from '@/components/forms/ValidationInput';
+import CompanySelect from '@/components/forms/CompanySelect';
+import ContactSelect from '@/components/forms/ContactSelect';
+import ContactForm from '@/components/forms/ContactForm';
+import { CompanyForm } from '@/features/companies';
 
 interface DealFormProps {
   isOpen: boolean;

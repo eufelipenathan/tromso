@@ -37,7 +37,7 @@ export function SmartDropdown({
   onOpenChange
 }: SmartDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [position, setPosition] = useState<Position>({ top: 0, left: 0 });
+  const [position, setPosition] = useState<Position | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -48,71 +48,94 @@ export function SmartDropdown({
     onOpenChange?.(value);
   };
 
-  useEffect(() => {
-    if (!open || !triggerRef.current || !dropdownRef.current) return;
+  const calculatePosition = () => {
+    if (!triggerRef.current || !dropdownRef.current) return null;
 
-    const updatePosition = () => {
-      const triggerRect = triggerRef.current?.getBoundingClientRect();
-      const dropdownRect = dropdownRef.current?.getBoundingClientRect();
-      
-      if (!triggerRect || !dropdownRect) return;
+    const triggerRect = triggerRef.current.getBoundingClientRect();
+    const dropdownRect = dropdownRef.current.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
 
-      const viewportHeight = window.innerHeight;
-      const viewportWidth = window.innerWidth;
+    let top = 0;
+    let left = 0;
 
-      let top = 0;
-      let left = 0;
-
-      // Posicionamento vertical
-      if (placement.includes('start')) {
-        top = triggerRect.top;
-      } else {
-        top = triggerRect.bottom - dropdownRect.height;
-      }
-
-      // Garante que o popover não ultrapasse os limites verticais da viewport
-      if (top + dropdownRect.height > viewportHeight) {
-        top = viewportHeight - dropdownRect.height - offset;
-      }
-      if (top < 0) {
-        top = offset;
-      }
-
-      // Posicionamento horizontal (sempre à esquerda do trigger)
+    // Calculate horizontal position
+    if (placement.startsWith('left')) {
       left = triggerRect.left - dropdownRect.width - offset;
-
-      // Se não houver espaço à esquerda, tenta posicionar à direita
       if (left < 0) {
+        // Not enough space on the left, try right side
         left = triggerRect.right + offset;
-        
-        // Se também não houver espaço à direita, posiciona onde houver mais espaço
         if (left + dropdownRect.width > viewportWidth) {
-          const spaceLeft = triggerRect.left;
-          const spaceRight = viewportWidth - triggerRect.right;
-          
-          if (spaceLeft > spaceRight) {
-            left = offset;
-          } else {
-            left = viewportWidth - dropdownRect.width - offset;
-          }
+          // Not enough space on either side, center horizontally
+          left = Math.max(0, (viewportWidth - dropdownRect.width) / 2);
         }
       }
+    } else {
+      left = triggerRect.right + offset;
+      if (left + dropdownRect.width > viewportWidth) {
+        // Not enough space on the right, try left side
+        left = triggerRect.left - dropdownRect.width - offset;
+        if (left < 0) {
+          // Not enough space on either side, center horizontally
+          left = Math.max(0, (viewportWidth - dropdownRect.width) / 2);
+        }
+      }
+    }
 
-      // Adiciona scroll offset
-      top += window.scrollY;
-      left += window.scrollX;
+    // Calculate vertical position
+    if (placement.endsWith('start')) {
+      top = triggerRect.top;
+      if (top + dropdownRect.height > viewportHeight) {
+        // Not enough space below, try above
+        top = Math.max(0, triggerRect.bottom - dropdownRect.height);
+      }
+    } else {
+      top = triggerRect.bottom - dropdownRect.height;
+      if (top < 0) {
+        // Not enough space above, try below
+        top = Math.min(triggerRect.top, viewportHeight - dropdownRect.height);
+      }
+    }
 
-      setPosition({ top, left });
+    // Add scroll offset
+    top += window.scrollY;
+    left += window.scrollX;
+
+    return { top, left };
+  };
+
+  useEffect(() => {
+    if (!open) {
+      setPosition(null);
+      return;
+    }
+
+    // Calculate initial position
+    const newPosition = calculatePosition();
+    if (newPosition) {
+      setPosition(newPosition);
+    }
+
+    const handleScroll = () => {
+      const newPosition = calculatePosition();
+      if (newPosition) {
+        setPosition(newPosition);
+      }
     };
 
-    updatePosition();
+    const handleResize = () => {
+      const newPosition = calculatePosition();
+      if (newPosition) {
+        setPosition(newPosition);
+      }
+    };
 
-    window.addEventListener('scroll', updatePosition, true);
-    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', handleScroll, true);
+    window.addEventListener('resize', handleResize);
 
     return () => {
-      window.removeEventListener('scroll', updatePosition, true);
-      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', handleScroll, true);
+      window.removeEventListener('resize', handleResize);
     };
   }, [open, placement, offset]);
 
@@ -143,7 +166,7 @@ export function SmartDropdown({
         {trigger}
       </div>
 
-      {open && createPortal(
+      {open && position && createPortal(
         <div
           ref={dropdownRef}
           style={{
@@ -151,7 +174,9 @@ export function SmartDropdown({
             top: position.top,
             left: position.left,
             width: width,
-            zIndex: 9999
+            zIndex: 9999,
+            opacity: position ? 1 : 0,
+            transition: 'opacity 150ms ease-out'
           }}
           className={className}
           onClick={(e) => e.stopPropagation()}

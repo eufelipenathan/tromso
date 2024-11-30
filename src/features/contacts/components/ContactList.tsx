@@ -1,87 +1,153 @@
-import React from 'react';
-import { Contact } from '@/types';
-import { GridColumn } from '@/types/grid';
-import AdvancedGrid from '@/components/grid/AdvancedGrid';
-import ListPopover from '@/components/grid/ListPopover';
+import React, { useCallback, useMemo, useState, useRef } from 'react';
+import { AgGridReact } from 'ag-grid-react';
+import { ColDef, GridOptions } from 'ag-grid-community';
+import { Contact, Company } from '@/types';
 import { formatDate } from '@/utils/dates';
+import { Search } from 'lucide-react';
+import { ActionsRenderer } from './grid/ActionsRenderer';
+import { ContactFieldRenderer } from './grid/ContactFieldRenderer';
+
+import '@ag-grid-community/styles/ag-grid.css';
+import '@ag-grid-community/styles/ag-theme-alpine.css';
 
 interface ContactListProps {
   contacts: Contact[];
-  companies: any[];
-  preferences?: any;
-  onPreferencesChange?: (prefs: any) => void;
+  companies: Company[];
   onEdit: (contact: Contact) => void;
   onDelete: (contact: Contact) => void;
 }
 
-export function ContactList({
-  contacts,
-  companies,
-  preferences,
-  onPreferencesChange,
-  onEdit,
-  onDelete
-}: ContactListProps) {
-  const columns: GridColumn[] = [
+export function ContactList({ contacts, companies, onEdit, onDelete }: ContactListProps) {
+  const gridRef = useRef<AgGridReact>(null);
+  const [quickFilterText, setQuickFilterText] = useState('');
+
+  const columnDefs = useMemo<ColDef[]>(() => [
     {
-      key: 'name',
-      label: 'Nome',
-      type: 'text',
-      sortable: true,
-      filterable: true,
-      section: 'Informações Básicas'
-    },
-    {
-      key: 'companyId',
-      label: 'Empresa',
-      type: 'text',
-      format: (companyId: string) => companies.find(c => c.id === companyId)?.name || '-',
-      sortable: true,
-      filterable: true,
-      section: 'Informações Básicas'
-    },
-    {
-      key: 'phones',
-      label: 'Telefones',
-      type: 'array',
-      format: (phones: string[]) => (
-        <ListPopover items={phones} maxVisible={1} title="Telefones" />
-      ),
+      headerName: '',
+      field: 'actions',
+      cellRenderer: ActionsRenderer,
+      cellRendererParams: {
+        onEdit,
+        onDelete,
+      },
+      width: 48,
+      minWidth: 48,
+      maxWidth: 48,
+      pinned: 'left',
       sortable: false,
-      filterable: true,
-      section: 'Informações Básicas'
+      filter: false,
+      resizable: false,
+      suppressMenu: true,
+      cellClass: 'ag-cell-no-focus',
     },
     {
-      key: 'emails',
-      label: 'E-mails',
-      type: 'array',
-      format: (emails: string[]) => (
-        <ListPopover items={emails} maxVisible={1} title="E-mails" />
-      ),
-      sortable: false,
-      filterable: true,
-      section: 'Informações Básicas'
+      headerName: 'Nome',
+      field: 'name',
+      minWidth: 300,
+      flex: 1,
     },
     {
-      key: 'createdAt',
-      label: 'Criado em',
-      type: 'date',
-      format: (value) => formatDate(value),
-      sortable: true,
-      filterable: false,
-      section: 'Informações Básicas'
-    }
-  ];
+      headerName: 'Empresa',
+      field: 'companyId',
+      valueFormatter: (params) => {
+        const company = companies.find(c => c.id === params.value);
+        return company?.name || '-';
+      },
+      minWidth: 300,
+      flex: 1,
+    },
+    {
+      headerName: 'Telefones',
+      field: 'phones',
+      minWidth: 180,
+      width: 180,
+      cellRenderer: ContactFieldRenderer,
+    },
+    {
+      headerName: 'E-mails',
+      field: 'emails',
+      minWidth: 200,
+      flex: 1,
+      cellRenderer: ContactFieldRenderer,
+    },
+    {
+      headerName: 'Criado em',
+      field: 'createdAt',
+      valueFormatter: (params) => formatDate(params.value),
+      minWidth: 180,
+      width: 180,
+    },
+  ], [companies, onEdit, onDelete]);
+
+  const defaultColDef = useMemo(() => ({
+    sortable: true,
+    filter: true,
+    resizable: true,
+  }), []);
+
+  const gridOptions: GridOptions = useMemo(() => ({
+    localeText: {
+      page: 'Página',
+      more: 'Mais',
+      to: 'até',
+      of: 'de',
+      next: 'Próximo',
+      last: 'Último',
+      first: 'Primeiro',
+      previous: 'Anterior',
+      loadingOoo: 'Carregando...',
+      selectAll: 'Selecionar todos',
+      searchOoo: 'Pesquisar...',
+      filterOoo: 'Filtrar...',
+      equals: 'Igual a',
+      notEqual: 'Diferente de',
+      contains: 'Contém',
+      notContains: 'Não contém',
+      startsWith: 'Começa com',
+      endsWith: 'Termina com',
+    },
+    suppressClickEdit: true,
+    suppressCellFocus: true,
+    rowHeight: 48,
+    headerHeight: 48,
+    rowClass: 'cursor-pointer',
+  }), []);
+
+  const onFilterTextBoxChanged = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setQuickFilterText(e.target.value);
+    gridRef.current?.api?.setQuickFilter(e.target.value);
+  }, []);
 
   return (
-    <AdvancedGrid
-      columns={columns}
-      data={contacts}
-      preferences={preferences}
-      onPreferencesChange={onPreferencesChange}
-      onEdit={onEdit}
-      onDelete={onDelete}
-      loading={false}
-    />
+    <div className="bg-white rounded-lg shadow-sm border">
+      <div className="p-4 border-b">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <input
+            type="text"
+            value={quickFilterText}
+            onChange={onFilterTextBoxChanged}
+            placeholder="Pesquisar..."
+            className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+
+      <div className="ag-theme-alpine w-full h-[600px]">
+        <AgGridReact
+          ref={gridRef}
+          rowData={contacts}
+          columnDefs={columnDefs}
+          defaultColDef={defaultColDef}
+          gridOptions={gridOptions}
+          animateRows={true}
+          rowSelection="single"
+          enableCellTextSelection={true}
+          pagination={true}
+          paginationPageSize={25}
+          suppressPaginationPanel={false}
+        />
+      </div>
+    </div>
   );
 }

@@ -1,82 +1,109 @@
 import { useState, useCallback } from 'react';
-import { collection, getDocs, query, where, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import { Company } from '@/types';
-import { useCompanyOperations } from './useCompanyOperations';
-import { useCompanyState } from './useCompanyState';
+import { useOptimisticUpdate } from '@/hooks/useOptimisticUpdate';
+import { companyService } from '../services/companyService';
+import { useUI } from '@/hooks/useUI';
 
 export function useCompanies() {
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { createCompany: create, updateCompany: update } = useCompanyOperations();
-  const { 
-    companies, 
-    setCompanies, 
-    addCompany, 
-    updateCompanyInState, 
-    removeCompany 
-  } = useCompanyState();
-
-  console.log('[useCompanies] Initial state:', { companies });
+  const { execute } = useOptimisticUpdate<Company>();
+  const { startLoading, stopLoading } = useUI();
 
   const loadCompanies = useCallback(async () => {
-    console.log('[useCompanies] Loading companies...');
     try {
       setIsLoading(true);
-      const companiesSnapshot = await getDocs(
-        query(collection(db, 'companies'), where('isDeleted', '!=', true))
-      );
-      const companiesData = companiesSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-        updatedAt: doc.data().updatedAt?.toDate() || new Date()
-      })) as Company[];
-
-      console.log('[useCompanies] Companies loaded:', companiesData);
+      const companiesData = await companyService.getAll();
       setCompanies(companiesData);
+    } catch (error) {
+      console.error('Error loading companies:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [setCompanies]);
+  }, []);
 
   const createCompany = async (data: Partial<Company>) => {
-    console.log('[useCompanies] Creating company:', data);
-    if (data.id) {
-      console.log('[useCompanies] Company has ID, updating instead:', data.id);
-      const result = await update(data.id, data, companies);
-      if (result) {
-        console.log('[useCompanies] Company updated:', result);
-        updateCompanyInState(result.id, result.entity);
-      }
+    const previousCompanies = [...companies];
+    const tempId = Math.random().toString(36).substr(2, 9);
+    const now = new Date();
+    
+    const newCompany = {
+      ...data,
+      id: tempId,
+      createdAt: now,
+      updatedAt: now
+    } as Company;
+
+    // Optimistic update
+    setCompanies(prev => [...prev, newCompany]);
+
+    try {
+      const result = await execute(
+        async () => {
+          const result = await companyService.create(data);
+          if (result) {
+            // Update local state with real ID
+            setCompanies(prev => prev.map(c => 
+              c.id === tempId ? result.company : c
+            ));
+          }
+          return result;
+        },
+        [...companies, newCompany],
+        previousCompanies,
+        { loadingKey: 'new-company' }
+      );
+
       return result;
-    } else {
-      console.log('[useCompanies] Creating new company');
-      const result = await create(data, companies);
-      if (result) {
-        console.log('[useCompanies] Company created:', result);
-        addCompany(result.entity);
-      }
-      return result;
+    } catch (error) {
+      console.error('Error creating company:', error);
+      throw error;
+    }
+  };
+
+  const updateCompany = async (id: string, data: Partial<Company>) => {
+    const previousCompanies = [...companies];
+    const updatedCompany = {
+      ...companies.find(c => c.id === id),
+      ...data,
+      updatedAt: new Date()
+    } as Company;
+
+    // Optimistic update
+    setCompanies(prev => prev.map(c => c.id === id ? updatedCompany : c));
+
+    try {
+      await execute(
+        async () => {
+          await companyService.update(id, data);
+        },
+        companies.map(c => c.id === id ? updatedCompany : c),
+        previousCompanies,
+        { loadingKey: `edit-company-${id}` }
+      );
+    } catch (error) {
+      console.error('Error updating company:', error);
+      throw error;
     }
   };
 
   const deleteCompany = async (company: Company) => {
-    console.log('[useCompanies] Deleting company:', company);
     if (!company.id) return;
 
     const previousCompanies = [...companies];
-    removeCompany(company.id);
+    setCompanies(prev => prev.filter(c => c.id !== company.id));
 
     try {
-      await updateDoc(doc(db, 'companies', company.id), {
-        isDeleted: true,
-        deletedAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
-      console.log('[useCompanies] Company deleted successfully');
+      await execute(
+        async () => {
+          await companyService.delete(company.id!);
+        },
+        companies.filter(c => c.id !== company.id),
+        previousCompanies,
+        { loadingKey: `delete-company-${company.id}` }
+      );
     } catch (error) {
-      console.error('[useCompanies] Error deleting company:', error);
-      setCompanies(previousCompanies);
+      console.error('Error deleting company:', error);
       throw error;
     }
   };
@@ -86,7 +113,7 @@ export function useCompanies() {
     isLoading,
     loadCompanies,
     createCompany,
-    deleteCompany,
-    setCompanies
+    updateCompany,
+    deleteCompany
   };
 }

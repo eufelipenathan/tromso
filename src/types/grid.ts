@@ -14,11 +14,11 @@ export interface GridPreferences {
   id?: string;
   userId: string;
   pageId: string;
-  columns: {
+  columns?: {
     key: string;
     visible: boolean;
     order: number;
-    width?: number;
+    width?: number | null;
   }[];
   sortBy?: {
     key: string;
@@ -29,4 +29,6 @@ export interface GridPreferences {
     operator: 'contains' | 'equals' | 'startsWith' | 'endsWith' | 'greaterThan' | 'lessThan';
     value: string;
   }[];
+  createdAt?: Date;
+  updatedAt?: Date;
 }
