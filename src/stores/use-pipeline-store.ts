@@ -22,6 +22,7 @@ interface PipelineStore {
   reorderStages: (activeId: string, overId: string) => void;
   addLostReason: (id: string) => void;
   removeLostReason: (id: string) => void;
+  reorderLostReasons: (activeId: string, overId: string) => void;
   setSelectedLostReasons: (ids: string[]) => void;
   setStages: (stages: Stage[]) => void;
   getFormData: () => {
@@ -88,6 +89,20 @@ export const usePipelineStore = create<PipelineStore>((set, get) => ({
     set((state) => ({
       selectedLostReasonIds: state.selectedLostReasonIds.filter(reasonId => reasonId !== id)
     }));
+  },
+
+  reorderLostReasons: (activeId, overId) => {
+    console.log("Reordering lost reasons:", { activeId, overId });
+    set((state) => {
+      const oldIndex = state.selectedLostReasonIds.indexOf(activeId);
+      const newIndex = state.selectedLostReasonIds.indexOf(overId);
+      
+      const newReasons = [...state.selectedLostReasonIds];
+      const [movedReason] = newReasons.splice(oldIndex, 1);
+      newReasons.splice(newIndex, 0, movedReason);
+      
+      return { selectedLostReasonIds: newReasons };
+    });
   },
 
   setSelectedLostReasons: (ids) => {

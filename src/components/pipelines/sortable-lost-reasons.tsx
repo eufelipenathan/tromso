@@ -10,6 +10,7 @@ import {
   DragEndEvent,
 } from "@dnd-kit/core";
 import {
+  arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
@@ -22,7 +23,7 @@ import { LostReason } from "@prisma/client";
 
 export function SortableLostReasons() {
   const [selectedReasons, setSelectedReasons] = useState<LostReason[]>([]);
-  const { selectedLostReasonIds, removeLostReason } = usePipelineStore();
+  const { selectedLostReasonIds, removeLostReason, reorderLostReasons } = usePipelineStore();
   const { toast } = useToast();
 
   const sensors = useSensors(
@@ -37,9 +38,11 @@ export function SortableLostReasons() {
       try {
         const response = await fetch('/api/lost-reasons');
         const allReasons = await response.json();
-        const selected = allReasons.filter((reason: LostReason) => 
-          selectedLostReasonIds.includes(reason.id)
-        );
+        const selected = allReasons
+          .filter((reason: LostReason) => selectedLostReasonIds.includes(reason.id))
+          .sort((a: LostReason, b: LostReason) => {
+            return selectedLostReasonIds.indexOf(a.id) - selectedLostReasonIds.indexOf(b.id);
+          });
         setSelectedReasons(selected);
       } catch (error) {
         console.error("Error loading selected reasons:", error);
@@ -49,39 +52,19 @@ export function SortableLostReasons() {
     loadSelectedReasons();
   }, [selectedLostReasonIds]);
 
-  const handleDragEnd = async (event: DragEndEvent) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
     const oldIndex = selectedReasons.findIndex(r => r.id === active.id);
     const newIndex = selectedReasons.findIndex(r => r.id === over.id);
 
-    // Optimistic update
-    const newReasons = [...selectedReasons];
-    const [movedReason] = newReasons.splice(oldIndex, 1);
-    newReasons.splice(newIndex, 0, movedReason);
+    // Atualiza o estado local
+    const newReasons = arrayMove(selectedReasons, oldIndex, newIndex);
     setSelectedReasons(newReasons);
 
-    try {
-      // Update order in the backend
-      const response = await fetch(`/api/pipelines/${pipelineId}/lost-reasons/reorder`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reasonIds: newReasons.map(r => r.id),
-        }),
-      });
-
-      if (!response.ok) throw new Error("Falha ao reordenar motivos");
-    } catch (error) {
-      // Rollback on error
-      setSelectedReasons(selectedReasons);
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Falha ao reordenar motivos de perda",
-      });
-    }
+    // Atualiza o store com a nova ordem
+    reorderLostReasons(active.id as string, over.id as string);
   };
 
   if (selectedReasons.length === 0) {
