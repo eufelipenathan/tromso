@@ -28,7 +28,7 @@ export default async function DealsPage() {
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
           Negócios
         </h1>
-        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+        <p className="mt-2 text-sm text-muted-foreground">
           Gerencie seus negócios através do quadro kanban
         </p>
       </div>

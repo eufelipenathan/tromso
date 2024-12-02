@@ -48,12 +48,13 @@ export const contactSchema = z.object({
   email: z.string()
     .email("Email inválido")
     .optional()
-    .or(z.literal("")),
+    .nullable(),
   phone: z.string()
-    .regex(phoneRegex, "Telefone inválido")
     .optional()
-    .or(z.literal("")),
-  position: z.string().optional(),
+    .nullable(),
+  position: z.string()
+    .optional()
+    .nullable(),
   companyId: z.string().min(1, "Empresa é obrigatória"),
 });
 
