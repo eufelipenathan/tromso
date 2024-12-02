@@ -1,8 +1,9 @@
 import { RegisterForm } from "@/components/auth/register-form";
+import { AuthContainer } from "@/components/auth/auth-container";
 
 export default function RegisterPage() {
   return (
-    <div className="w-full max-w-md p-6">
+    <AuthContainer>
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold">Criar Conta</h1>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -10,6 +11,6 @@ export default function RegisterPage() {
         </p>
       </div>
       <RegisterForm />
-    </div>
+    </AuthContainer>
   );
 }

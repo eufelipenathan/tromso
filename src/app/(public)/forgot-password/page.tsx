@@ -1,8 +1,9 @@
 import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
+import { AuthContainer } from "@/components/auth/auth-container";
 
 export default function ForgotPasswordPage() {
   return (
-    <div className="w-full max-w-md p-6">
+    <AuthContainer>
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold">Recuperar Senha</h1>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -10,6 +11,6 @@ export default function ForgotPasswordPage() {
         </p>
       </div>
       <ForgotPasswordForm />
-    </div>
+    </AuthContainer>
   );
 }

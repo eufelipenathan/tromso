@@ -1,8 +1,9 @@
 import { LoginForm } from "@/components/auth/login-form";
+import { AuthContainer } from "@/components/auth/auth-container";
 
 export default function LoginPage() {
   return (
-    <div className="w-full max-w-md p-6">
+    <AuthContainer>
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold">Login</h1>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -10,6 +11,6 @@ export default function LoginPage() {
         </p>
       </div>
       <LoginForm />
-    </div>
+    </AuthContainer>
   );
 }

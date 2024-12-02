@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import './auth.css';
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -93,20 +95,20 @@
     @apply bg-muted-foreground/30 rounded-full hover:bg-muted-foreground/50 transition-colors;
   }
 
-/* Form inputs */
-input, textarea {
-  @apply h-[40px] w-[270px] rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors;
-  @apply focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-ring;
-  @apply disabled:cursor-not-allowed disabled:opacity-50;
-  @apply placeholder:text-muted-foreground;
-}
+  /* Form inputs */
+  input, textarea {
+    @apply h-[40px] w-[270px] rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors;
+    @apply focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-ring;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+    @apply placeholder:text-muted-foreground;
+  }
 
-select {
-  @apply h-[38px] w-[270px] rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors;
-  @apply focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-ring;
-  @apply disabled:cursor-not-allowed disabled:opacity-50;
-  @apply placeholder:text-muted-foreground;
-}
+  select {
+    @apply h-[38px] w-[270px] rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors;
+    @apply focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-ring;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+    @apply placeholder:text-muted-foreground;
+  }
 
   /* Form labels */
   label {
