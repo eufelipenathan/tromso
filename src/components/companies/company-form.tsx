@@ -2,96 +2,80 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FormSection } from "@/components/ui/form-section";
-import { useToast } from "@/hooks/use-toast";
+import { companySchema, type CompanyFormData } from "@/lib/validations";
+import { cnpjMask, phoneMask, cepMask } from "@/lib/masks";
 import { useState } from "react";
-
-const brazilianStates = [
-  { value: "AC", label: "Acre" },
-  { value: "AL", label: "Alagoas" },
-  { value: "AP", label: "Amapá" },
-  { value: "AM", label: "Amazonas" },
-  { value: "BA", label: "Bahia" },
-  { value: "CE", label: "Ceará" },
-  { value: "DF", label: "Distrito Federal" },
-  { value: "ES", label: "Espírito Santo" },
-  { value: "GO", label: "Goiás" },
-  { value: "MA", label: "Maranhão" },
-  { value: "MT", label: "Mato Grosso" },
-  { value: "MS", label: "Mato Grosso do Sul" },
-  { value: "MG", label: "Minas Gerais" },
-  { value: "PA", label: "Pará" },
-  { value: "PB", label: "Paraíba" },
-  { value: "PR", label: "Paraná" },
-  { value: "PE", label: "Pernambuco" },
-  { value: "PI", label: "Piauí" },
-  { value: "RJ", label: "Rio de Janeiro" },
-  { value: "RN", label: "Rio Grande do Norte" },
-  { value: "RS", label: "Rio Grande do Sul" },
-  { value: "RO", label: "Rondônia" },
-  { value: "RR", label: "Roraima" },
-  { value: "SC", label: "Santa Catarina" },
-  { value: "SP", label: "São Paulo" },
-  { value: "SE", label: "Sergipe" },
-  { value: "TO", label: "Tocantins" }
-];
-
-const companySchema = z.object({
-  name: z.string().min(1, "Nome é obrigatório"),
-  cnpj: z.string().optional(),
-  email: z.string().email("Email inválido").optional().or(z.literal("")),
-  phone: z.string().optional(),
-  website: z.string().optional(),
-  cep: z.string().optional(),
-  street: z.string().optional(),
-  number: z.string().optional(),
-  complement: z.string().optional(),
-  neighborhood: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  mailbox: z.string().optional(),
-});
-
-type CompanyFormData = z.infer<typeof companySchema>;
+import { cn } from "@/lib/utils";
+import { STATES } from "@/lib/constants";
 
 interface CompanyFormProps {
   onSubmit: (data: CompanyFormData) => Promise<void>;
+  initialData?: Partial<CompanyFormData>;
 }
 
-export function CompanyForm({ onSubmit }: CompanyFormProps) {
-  const [addressLoading, setAddressLoading] = useState(false);
+export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
+  const [isSearchingCep, setIsSearchingCep] = useState(false);
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
+    trigger,
+    watch,
   } = useForm<CompanyFormData>({
     resolver: zodResolver(companySchema),
+    defaultValues: initialData,
+    mode: "onBlur",
   });
 
-  const searchCep = async (cep: string) => {
-    if (!cep || cep.length !== 8) return;
+  const handleCNPJChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const masked = cnpjMask(value);
+    setValue("cnpj", masked, { shouldValidate: false });
+  };
 
-    try {
-      setAddressLoading(true);
-      const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-      const data = await response.json();
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const masked = phoneMask(value);
+    setValue("phone", masked, { shouldValidate: false });
+  };
 
-      if (!data.erro) {
-        setValue("street", data.logradouro);
-        setValue("neighborhood", data.bairro);
-        setValue("city", data.localidade);
-        setValue("state", data.uf);
+  const handleCEPChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const masked = cepMask(value);
+    setValue("cep", masked, { shouldValidate: false });
+  };
+
+  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "");
+    setValue("number", value);
+  };
+
+  const handleCEPBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
+    const cep = e.target.value.replace(/\D/g, "");
+    if (cep.length === 8) {
+      setIsSearchingCep(true);
+      try {
+        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const data = await response.json();
+        
+        if (!data.erro) {
+          setValue("street", data.logradouro);
+          setValue("neighborhood", data.bairro);
+          setValue("city", data.localidade);
+          setValue("state", data.uf);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar CEP:", error);
+      } finally {
+        setIsSearchingCep(false);
       }
-    } catch (error) {
-      console.error("Erro ao buscar CEP:", error);
-    } finally {
-      setAddressLoading(false);
     }
+    trigger("cep");
   };
 
   return (
@@ -100,7 +84,11 @@ export function CompanyForm({ onSubmit }: CompanyFormProps) {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="name" className="required">Nome</Label>
-            <Input id="name" {...register("name")} />
+            <Input 
+              id="name" 
+              {...register("name")}
+              className={cn(errors.name && "border-destructive focus-visible:ring-destructive")}
+            />
             {errors.name && (
               <p className="text-sm text-destructive">{errors.name.message}</p>
             )}
@@ -108,7 +96,14 @@ export function CompanyForm({ onSubmit }: CompanyFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="cnpj">CNPJ</Label>
-            <Input id="cnpj" {...register("cnpj")} />
+            <Input 
+              id="cnpj" 
+              value={watch("cnpj") || ""}
+              onChange={handleCNPJChange}
+              onBlur={() => trigger("cnpj")}
+              placeholder="00.000.000/0000-00"
+              className={cn(errors.cnpj && "border-destructive focus-visible:ring-destructive")}
+            />
             {errors.cnpj && (
               <p className="text-sm text-destructive">{errors.cnpj.message}</p>
             )}
@@ -116,7 +111,14 @@ export function CompanyForm({ onSubmit }: CompanyFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" {...register("email")} />
+            <Input 
+              id="email" 
+              type="email" 
+              {...register("email")}
+              onBlur={() => trigger("email")}
+              placeholder="exemplo@email.com"
+              className={cn(errors.email && "border-destructive focus-visible:ring-destructive")}
+            />
             {errors.email && (
               <p className="text-sm text-destructive">{errors.email.message}</p>
             )}
@@ -124,15 +126,28 @@ export function CompanyForm({ onSubmit }: CompanyFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="phone">Telefone</Label>
-            <Input id="phone" {...register("phone")} />
+            <Input 
+              id="phone" 
+              value={watch("phone") || ""}
+              onChange={handlePhoneChange}
+              onBlur={() => trigger("phone")}
+              placeholder="(00) 00000-0000"
+              className={cn(errors.phone && "border-destructive focus-visible:ring-destructive")}
+            />
             {errors.phone && (
               <p className="text-sm text-destructive">{errors.phone.message}</p>
             )}
           </div>
 
           <div className="space-y-2 col-span-2">
-            <Label htmlFor="website">Website</Label>
-            <Input id="website" {...register("website")} />
+            <Label htmlFor="website">Site</Label>
+            <Input 
+              id="website" 
+              {...register("website")}
+              onBlur={() => trigger("website")}
+              placeholder="www.exemplo.com.br"
+              className={cn(errors.website && "border-destructive focus-visible:ring-destructive")}
+            />
             {errors.website && (
               <p className="text-sm text-destructive">{errors.website.message}</p>
             )}
@@ -144,11 +159,14 @@ export function CompanyForm({ onSubmit }: CompanyFormProps) {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="cep">CEP</Label>
-            <Input
-              id="cep"
-              {...register("cep")}
-              onBlur={(e) => searchCep(e.target.value.replace(/\D/g, ""))}
-              disabled={addressLoading}
+            <Input 
+              id="cep" 
+              value={watch("cep") || ""}
+              onChange={handleCEPChange}
+              onBlur={handleCEPBlur}
+              placeholder="00000-000"
+              className={cn(errors.cep && "border-destructive focus-visible:ring-destructive")}
+              disabled={isSearchingCep}
             />
             {errors.cep && (
               <p className="text-sm text-destructive">{errors.cep.message}</p>
@@ -157,82 +175,62 @@ export function CompanyForm({ onSubmit }: CompanyFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="street">Endereço</Label>
-            <Input
-              id="street"
+            <Input 
+              id="street" 
               {...register("street")}
-              disabled={addressLoading}
             />
-            {errors.street && (
-              <p className="text-sm text-destructive">{errors.street.message}</p>
-            )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="number">Número</Label>
-            <Input id="number" {...register("number")} />
-            {errors.number && (
-              <p className="text-sm text-destructive">{errors.number.message}</p>
-            )}
+            <Input 
+              id="number" 
+              value={watch("number") || ""}
+              onChange={handleNumberChange}
+              inputMode="numeric"
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="complement">Complemento</Label>
             <Input id="complement" {...register("complement")} />
-            {errors.complement && (
-              <p className="text-sm text-destructive">{errors.complement.message}</p>
-            )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="neighborhood">Bairro</Label>
-            <Input
-              id="neighborhood"
+            <Input 
+              id="neighborhood" 
               {...register("neighborhood")}
-              disabled={addressLoading}
             />
-            {errors.neighborhood && (
-              <p className="text-sm text-destructive">{errors.neighborhood.message}</p>
-            )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="city">Cidade</Label>
-            <Input
-              id="city"
+            <Input 
+              id="city" 
               {...register("city")}
-              disabled={addressLoading}
             />
-            {errors.city && (
-              <p className="text-sm text-destructive">{errors.city.message}</p>
-            )}
           </div>
 
           <div className="space-y-2">
-  <Label htmlFor="state">Estado</Label>
-  <select
-    id="state"
-    {...register("state")}
-    className="block w-full h-[38px] rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-    disabled={addressLoading}
-  >
-    <option value="">Selecione</option>
-    {brazilianStates.map((state) => (
-      <option key={state.value} value={state.value}>
-        {state.label}
-      </option>
-    ))}
-  </select>
-  {errors.state && (
-    <p className="text-sm text-destructive">{errors.state.message}</p>
-  )}
-</div>
+            <Label htmlFor="state">Estado</Label>
+            <select
+              id="state"
+              {...register("state")}
+              className="block w-full h-[38px] rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              <option value="">Selecione</option>
+              {STATES.map((state) => (
+                <option key={state.uf} value={state.uf}>
+                  {state.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="mailbox">Caixa Postal</Label>
             <Input id="mailbox" {...register("mailbox")} />
-            {errors.mailbox && (
-              <p className="text-sm text-destructive">{errors.mailbox.message}</p>
-            )}
           </div>
         </div>
       </FormSection>

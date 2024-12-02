@@ -1,17 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { formatDate, formatPhone } from "@/lib/utils";
 import { Contact, Company } from "@prisma/client";
-import Link from "next/link";
+import { ContactDataGrid } from "./contact-data-grid";
 
 type ContactWithCompany = Contact & {
   company: Company;
@@ -41,16 +32,6 @@ export function ContactTable() {
     loadContacts();
   }, []);
 
-  if (isLoading) {
-    return (
-      <div className="rounded-lg border bg-card">
-        <div className="p-8 text-center text-sm text-muted-foreground">
-          Carregando contatos...
-        </div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="rounded-lg border bg-destructive/10">
@@ -61,69 +42,5 @@ export function ContactTable() {
     );
   }
 
-  if (contacts.length === 0) {
-    return (
-      <div className="rounded-lg border bg-card">
-        <div className="p-8 text-center text-sm text-muted-foreground">
-          Nenhum contato cadastrado
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="rounded-lg border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Nome</TableHead>
-            <TableHead>Empresa</TableHead>
-            <TableHead>Cargo</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Telefone</TableHead>
-            <TableHead>Cadastro</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {contacts.map((contact) => (
-            <TableRow key={contact.id}>
-              <TableCell className="font-medium">
-                <Link
-                  href={`/contatos/${contact.id}`}
-                  className="hover:text-primary"
-                >
-                  {contact.name}
-                </Link>
-              </TableCell>
-              <TableCell>
-                <Link
-                  href={`/empresas/${contact.companyId}`}
-                  className="hover:text-primary"
-                >
-                  {contact.company.name}
-                </Link>
-              </TableCell>
-              <TableCell>{contact.position || "-"}</TableCell>
-              <TableCell>
-                {contact.email ? (
-                  <a
-                    href={`mailto:${contact.email}`}
-                    className="text-primary hover:underline"
-                  >
-                    {contact.email}
-                  </a>
-                ) : (
-                  "-"
-                )}
-              </TableCell>
-              <TableCell>
-                {contact.phone ? formatPhone(contact.phone) : "-"}
-              </TableCell>
-              <TableCell>{formatDate(contact.createdAt)}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  );
+  return <ContactDataGrid contacts={contacts} isLoading={isLoading} />;
 }

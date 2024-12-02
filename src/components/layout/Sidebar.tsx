@@ -38,7 +38,7 @@ export function Sidebar() {
       <nav className="flex-1 overflow-y-auto p-4">
         <div className="space-y-1">
           {navigation.map((item) => {
-            const isActive = pathname.startsWith(item.href);
+            const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
             return (
               <div key={item.name}>
                 <Link
@@ -62,20 +62,23 @@ export function Sidebar() {
                 </Link>
                 {item.submenu && isActive && (
                   <div className="ml-8 mt-2 space-y-1">
-                    {item.submenu.map((subitem) => (
-                      <Link
-                        key={subitem.name}
-                        href={subitem.href}
-                        className={cn(
-                          "group flex items-center px-2 py-1.5 text-sm font-medium rounded-md",
-                          pathname === subitem.href
-                            ? "text-primary"
-                            : "text-muted-foreground hover:text-foreground"
-                        )}
-                      >
-                        {subitem.name}
-                      </Link>
-                    ))}
+                    {item.submenu.map((subitem) => {
+                      const isSubActive = pathname === subitem.href;
+                      return (
+                        <Link
+                          key={subitem.name}
+                          href={subitem.href}
+                          className={cn(
+                            "group flex items-center px-2 py-1.5 text-sm font-medium rounded-md",
+                            isSubActive
+                              ? "text-primary"
+                              : "text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          {subitem.name}
+                        </Link>
+                      );
+                    })}
                   </div>
                 )}
               </div>

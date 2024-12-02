@@ -18,6 +18,7 @@ interface FormModalProps {
   description?: string;
   children: React.ReactNode;
   isSubmitting?: boolean;
+  formId?: string;
 }
 
 export function FormModal({
@@ -27,6 +28,7 @@ export function FormModal({
   description,
   children,
   isSubmitting,
+  formId = "company-form",
 }: FormModalProps) {
   return (
     <Modal open={open} onOpenChange={onClose}>
@@ -60,7 +62,6 @@ export function FormModal({
             variant="outline"
             size="sm"
             onClick={onClose}
-            form="company-form"
           >
             Cancelar
           </Button>
@@ -68,7 +69,7 @@ export function FormModal({
             type="submit"
             size="sm"
             disabled={isSubmitting}
-            form="company-form"
+            form={formId}
           >
             {isSubmitting ? "Salvando..." : "Salvar"}
           </Button>

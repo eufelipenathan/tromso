@@ -7,7 +7,7 @@ import { MoreVert as MoreVertIcon } from "@mui/icons-material";
 import { useToast } from "@/hooks/use-toast";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
-export function CompanyActions(params: GridRenderCellParams) {
+export function ContactActions(params: GridRenderCellParams) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { toast } = useToast();
@@ -27,17 +27,17 @@ export function CompanyActions(params: GridRenderCellParams) {
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`/api/companies/${params.row.id}`, {
+      const response = await fetch(`/api/contacts/${params.row.id}`, {
         method: "DELETE",
       });
 
       if (!response.ok) {
-        throw new Error("Erro ao excluir empresa");
+        throw new Error("Erro ao excluir contato");
       }
 
       toast({
         title: "Sucesso",
-        description: "Empresa excluída com sucesso",
+        description: "Contato excluído com sucesso",
       });
 
       window.location.reload();
@@ -45,7 +45,7 @@ export function CompanyActions(params: GridRenderCellParams) {
       toast({
         variant: "destructive",
         title: "Erro",
-        description: "Ocorreu um erro ao excluir a empresa",
+        description: "Ocorreu um erro ao excluir o contato",
       });
     }
     handleClose();
@@ -78,8 +78,8 @@ export function CompanyActions(params: GridRenderCellParams) {
       <ConfirmationDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
-        title="Excluir empresa"
-        description="Tem certeza que deseja excluir esta empresa? Esta ação não pode ser desfeita."
+        title="Excluir contato"
+        description="Tem certeza que deseja excluir este contato? Esta ação não pode ser desfeita."
         confirmText="Excluir"
         onConfirm={handleDelete}
       />
