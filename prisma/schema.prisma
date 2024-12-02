@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String
+  role          String    @default("user")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  @@map("users")
+}
+
+model Company {
+  id            String    @id @default(cuid())
+  name          String
+  cnpj          String?
+  email         String?
+  phone         String?
+  website       String?
+  
+  // Address fields
+  cep           String?
+  street        String?
+  number        String?
+  complement    String?
+  neighborhood  String?
+  city          String?
+  state         String?
+  mailbox       String?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  contacts      Contact[]
+  deals         Deal[]
+  interactions  Interaction[]
+
+  @@map("companies")
+}
+
+model Contact {
+  id            String    @id @default(cuid())
+  name          String
+  email         String?
+  phone         String?
+  position      String?
+  companyId     String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  company       Company   @relation(fields: [companyId], references: [id])
+  deals         Deal[]
+
+  @@map("contacts")
+}
+
+model Pipeline {
+  id            String    @id @default(cuid())
+  name          String
+  order         Int
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  stages        Stage[]
+
+  @@map("pipelines")
+}
+
+model Stage {
+  id            String    @id @default(cuid())
+  name          String
+  order         Int
+  pipelineId    String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  pipeline      Pipeline  @relation(fields: [pipelineId], references: [id])
+  deals         Deal[]
+
+  @@map("stages")
+}
+
+model Deal {
+  id            String    @id @default(cuid())
+  title         String
+  value         Decimal   @db.Decimal(10, 2)
+  companyId     String
+  contactId     String
+  stageId       String
+  lostReasonId  String?
+  closedAt      DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  company       Company     @relation(fields: [companyId], references: [id])
+  contact       Contact     @relation(fields: [contactId], references: [id])
+  stage         Stage       @relation(fields: [stageId], references: [id])
+  lostReason    LostReason? @relation(fields: [lostReasonId], references: [id])
+
+  @@map("deals")
+}
+
+model LostReason {
+  id            String    @id @default(cuid())
+  name          String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  deals         Deal[]
+
+  @@map("lost_reasons")
+}
+
+model Interaction {
+  id            String    @id @default(cuid())
+  type          String    // email, call, meeting, task
+  title         String
+  description   String?
+  date          DateTime
+  companyId     String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  company       Company   @relation(fields: [companyId], references: [id])
+
+  @@map("interactions")
+}
