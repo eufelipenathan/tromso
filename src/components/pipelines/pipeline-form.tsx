@@ -6,144 +6,120 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PipelineStages } from "./pipeline-stages";
+import { PipelineLostReasons } from "./pipeline-lost-reasons";
+import { usePipelineStore } from "@/stores/use-pipeline-store";
+import { useEffect } from "react";
 
 const pipelineSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
-  stages: z.array(z.object({
-    name: z.string().min(1, "Nome do estágio é obrigatório"),
-  })).min(1, "Adicione pelo menos um estágio"),
 });
 
 type PipelineFormData = z.infer<typeof pipelineSchema>;
 
 interface PipelineFormProps {
-  onClose: () => void;
+  initialData?: {
+    id: string;
+    name: string;
+  };
+  onSubmit: (data: PipelineFormData & { stages: { name: string }[]; lostReasonIds: string[] }) => Promise<void>;
 }
 
-export function PipelineForm({ onClose }: PipelineFormProps) {
-  const { toast } = useToast();
+export function PipelineForm({ initialData, onSubmit }: PipelineFormProps) {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
-    watch,
-    setValue,
+    formState: { errors },
   } = useForm<PipelineFormData>({
     resolver: zodResolver(pipelineSchema),
     defaultValues: {
-      stages: [{ name: "" }],
+      name: initialData?.name || "",
     },
   });
 
-  const stages = watch("stages");
+  const reset = usePipelineStore((state) => state.reset);
+  const getFormData = usePipelineStore((state) => state.getFormData);
 
-  const addStage = () => {
-    setValue("stages", [...stages, { name: "" }]);
-  };
+  useEffect(() => {
+    // Load pipeline data if editing
+    const loadPipelineData = async () => {
+      if (initialData?.id) {
+        console.log("Loading pipeline data for:", initialData.id);
+        
+        try {
+          // Load stages
+          const stagesResponse = await fetch(`/api/pipelines/${initialData.id}/stages`);
+          const stagesData = await stagesResponse.json();
+          console.log("Loaded stages:", stagesData);
 
-  const removeStage = (index: number) => {
-    if (stages.length > 1) {
-      setValue(
-        "stages",
-        stages.filter((_, i) => i !== index)
-      );
-    }
-  };
+          // Load lost reasons
+          const lostReasonsResponse = await fetch(`/api/pipelines/${initialData.id}/lost-reasons`);
+          const lostReasonsData = await lostReasonsResponse.json();
+          console.log("Loaded lost reasons:", lostReasonsData);
 
-  const onSubmit = async (data: PipelineFormData) => {
-    try {
-      const response = await fetch("/api/pipelines", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+          // Update store
+          const setStages = usePipelineStore.getState().setStages;
+          const setSelectedLostReasons = usePipelineStore.getState().setSelectedLostReasons;
 
-      if (!response.ok) {
-        throw new Error("Erro ao cadastrar pipeline");
+          setStages(stagesData);
+          setSelectedLostReasons(lostReasonsData.map((lr: any) => lr.lostReasonId));
+        } catch (error) {
+          console.error("Error loading pipeline data:", error);
+        }
       }
+    };
 
-      toast({
-        title: "Sucesso",
-        description: "Pipeline cadastrado com sucesso",
-      });
-      
-      onClose();
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Ocorreu um erro ao cadastrar o pipeline",
-      });
-    }
+    loadPipelineData();
+
+    // Reset store when component unmounts
+    return () => reset();
+  }, [initialData?.id, reset]);
+
+  const handleFormSubmit = async (data: PipelineFormData) => {
+    const { stages, lostReasonIds } = getFormData();
+    console.log("Submitting pipeline data:", {
+      ...data,
+      stages,
+      lostReasonIds
+    });
+    await onSubmit({
+      ...data,
+      stages,
+      lostReasonIds
+    });
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mb-6">
-      <div className="space-y-4">
+    <div className="space-y-6">
+      <form id="pipeline-form" onSubmit={handleSubmit(handleFormSubmit)}>
         <div className="space-y-2">
-          <Label htmlFor="name">Nome do Pipeline</Label>
-          <Input id="name" {...register("name")} />
+          <Label htmlFor="name" className="required">Nome</Label>
+          <Input
+            id="name"
+            {...register("name")}
+            className={errors.name && "border-destructive focus-visible:ring-destructive"}
+          />
           {errors.name && (
             <p className="text-sm text-destructive">{errors.name.message}</p>
           )}
         </div>
+      </form>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label>Estágios</Label>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addStage}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Adicionar Estágio
-            </Button>
-          </div>
+      <Tabs defaultValue="stages">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="stages">Estágios</TabsTrigger>
+          <TabsTrigger value="lost-reasons">Motivos de Perda</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="stages" className="mt-4">
+          <PipelineStages />
+        </TabsContent>
 
-          {stages.map((_, index) => (
-            <div key={index} className="flex gap-4">
-              <div className="flex-1 space-y-2">
-                <Input
-                  placeholder="Nome do estágio"
-                  {...register(`stages.${index}.name`)}
-                />
-                {errors.stages?.[index]?.name && (
-                  <p className="text-sm text-destructive">
-                    {errors.stages[index]?.name?.message}
-                  </p>
-                )}
-              </div>
-              {stages.length > 1 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={() => removeStage(index)}
-                >
-                  ×
-                </Button>
-              )}
-            </div>
-          ))}
-          {errors.stages && (
-            <p className="text-sm text-destructive">{errors.stages.message}</p>
-          )}
-        </div>
-      </div>
-
-      <div className="flex justify-end space-x-4">
-        <Button type="button" variant="outline" onClick={onClose}>
-          Cancelar
-        </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Salvando..." : "Salvar"}
-        </Button>
-      </div>
-    </form>
+        <TabsContent value="lost-reasons" className="mt-4">
+          <PipelineLostReasons />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

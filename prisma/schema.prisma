@@ -69,12 +69,13 @@ model Contact {
 model Pipeline {
   id            String    @id @default(cuid())
   name          String
-  order         Int
+  order         Int       @default(0)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
 
   stages        Stage[]
+  lostReasons   PipelineLostReason[]
 
   @@map("pipelines")
 }
@@ -82,7 +83,7 @@ model Pipeline {
 model Stage {
   id            String    @id @default(cuid())
   name          String
-  order         Int
+  order         Int       @default(0)
   pipelineId    String
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -91,6 +92,7 @@ model Stage {
   pipeline      Pipeline  @relation(fields: [pipelineId], references: [id])
   deals         Deal[]
 
+  @@unique([name, pipelineId, deletedAt])
   @@map("stages")
 }
 
@@ -124,8 +126,26 @@ model LostReason {
   deletedAt     DateTime?
 
   deals         Deal[]
+  pipelines     PipelineLostReason[]
 
+  @@unique([name, deletedAt])
   @@map("lost_reasons")
+}
+
+model PipelineLostReason {
+  id            String    @id @default(cuid())
+  pipelineId    String
+  lostReasonId  String
+  order         Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  pipeline      Pipeline    @relation(fields: [pipelineId], references: [id])
+  lostReason    LostReason  @relation(fields: [lostReasonId], references: [id])
+
+  @@unique([pipelineId, lostReasonId, deletedAt])
+  @@map("pipeline_lost_reasons")
 }
 
 model Interaction {
