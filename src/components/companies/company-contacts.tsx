@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Contact } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Plus, Mail, Phone } from "lucide-react";
-import { ContactForm } from "./contact-form";
+import { ContactForm } from "../contacts/contact-form";
 import { formatPhone } from "@/lib/utils";
 
 interface CompanyContactsProps {
