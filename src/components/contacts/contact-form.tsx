@@ -18,7 +18,11 @@ interface ContactFormProps {
   selectedCompany?: Company;
 }
 
-export function ContactForm({ onSubmit, initialData, selectedCompany }: ContactFormProps) {
+export function ContactForm({
+  onSubmit,
+  initialData,
+  selectedCompany,
+}: ContactFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -69,14 +73,22 @@ export function ContactForm({ onSubmit, initialData, selectedCompany }: ContactF
   }, [selectedCompany, setValue]);
 
   return (
-    <form id="contact-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+    <form
+      id="contact-form"
+      onSubmit={handleSubmit(handleFormSubmit)}
+      className="space-y-6"
+    >
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="name" className="required">Nome</Label>
-          <Input 
-            id="name" 
+          <Label htmlFor="name" className="required">
+            Nome
+          </Label>
+          <Input
+            id="name"
             {...register("name")}
-            className={cn(errors.name && "border-destructive focus-visible:ring-destructive")}
+            className={cn(
+              errors.name && "border-destructive focus-visible:ring-destructive"
+            )}
           />
           {errors.name && (
             <p className="text-sm text-destructive">{errors.name.message}</p>
@@ -85,17 +97,14 @@ export function ContactForm({ onSubmit, initialData, selectedCompany }: ContactF
 
         <div className="space-y-2">
           <Label htmlFor="position">Cargo</Label>
-          <Input 
-            id="position" 
-            {...register("position")}
-          />
+          <Input id="position" {...register("position")} />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
-          <Input 
-            id="email" 
-            type="email" 
+          <Input
+            id="email"
+            type="email"
             {...register("email")}
             placeholder="exemplo@email.com"
           />
@@ -106,8 +115,8 @@ export function ContactForm({ onSubmit, initialData, selectedCompany }: ContactF
 
         <div className="space-y-2">
           <Label htmlFor="phone">Telefone</Label>
-          <Input 
-            id="phone" 
+          <Input
+            id="phone"
             value={watch("phone") || ""}
             onChange={handlePhoneChange}
             placeholder="(00) 00000-0000"
@@ -121,7 +130,11 @@ export function ContactForm({ onSubmit, initialData, selectedCompany }: ContactF
               <Building2 className="h-4 w-4" />
               <span className="text-sm">{selectedCompany.name}</span>
             </div>
-            <input type="hidden" {...register("companyId")} value={selectedCompany.id} />
+            <input
+              type="hidden"
+              {...register("companyId")}
+              value={selectedCompany.id}
+            />
           </div>
         )}
       </div>
