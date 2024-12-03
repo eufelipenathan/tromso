@@ -1,7 +1,7 @@
 "use client";
 
 import { Pipeline, Stage, Deal, Company, Contact } from "@prisma/client";
-import { DealForm } from "./deal-form";
+import { DealForm } from "../deals/deal-form";
 import { KanbanBoard } from "./kanban-board";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
