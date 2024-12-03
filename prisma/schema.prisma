@@ -45,6 +45,7 @@ model Company {
   contacts      Contact[]
   deals         Deal[]
   interactions  Interaction[]
+  customFields  CustomFieldValue[] @relation("CompanyFields")
 
   @@map("companies")
 }
@@ -62,8 +63,61 @@ model Contact {
 
   company       Company   @relation(fields: [companyId], references: [id])
   deals         Deal[]
+  customFields  CustomFieldValue[] @relation("ContactFields")
 
   @@map("contacts")
+}
+
+model FormSection {
+  id            String    @id @default(cuid())
+  name          String
+  entityType    String    // company, contact, deal
+  order         Int
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  fields        CustomField[]
+
+  @@map("form_sections")
+}
+
+model CustomField {
+  id            String    @id @default(cuid())
+  name          String
+  type          String    // text, number, email, phone, date, select, etc.
+  required      Boolean   @default(false)
+  fullWidth     Boolean   @default(false)
+  multiple      Boolean   @default(false)
+  order         Int
+  options       String?   // JSON array for select fields
+  sectionId     String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  section       FormSection @relation(fields: [sectionId], references: [id])
+  values        CustomFieldValue[]
+
+  @@map("custom_fields")
+}
+
+model CustomFieldValue {
+  id            String    @id @default(cuid())
+  value         String
+  fieldId       String
+  entityId      String    // ID of the company, contact, or deal
+  entityType    String    // company, contact, deal
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  field         CustomField @relation(fields: [fieldId], references: [id])
+  company       Company?    @relation("CompanyFields", fields: [entityId], references: [id], map: "company_field_values")
+  contact       Contact?    @relation("ContactFields", fields: [entityId], references: [id], map: "contact_field_values")
+  deal          Deal?       @relation("DealFields", fields: [entityId], references: [id], map: "deal_field_values")
+
+  @@unique([fieldId, entityId])
+  @@map("custom_field_values")
 }
 
 model Pipeline {
@@ -113,6 +167,7 @@ model Deal {
   contact       Contact     @relation(fields: [contactId], references: [id])
   stage         Stage       @relation(fields: [stageId], references: [id])
   lostReason    LostReason? @relation(fields: [lostReasonId], references: [id])
+  customFields  CustomFieldValue[] @relation("DealFields")
 
   @@map("deals")
 }

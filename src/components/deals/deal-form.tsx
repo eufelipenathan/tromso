@@ -40,13 +40,7 @@ interface DealFormProps {
   onPipelineChange: (pipelineId: string) => void;
 }
 
-export function DealForm({
-  pipeline,
-  pipelines,
-  onClose,
-  onSubmit,
-  onPipelineChange,
-}: DealFormProps) {
+export function DealForm({ pipeline, pipelines, onClose, onSubmit, onPipelineChange }: DealFormProps) {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [filteredCompanies, setFilteredCompanies] = useState<Company[]>([]);
@@ -83,16 +77,10 @@ export function DealForm({
     loadCompanies();
 
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        companySearchRef.current &&
-        !companySearchRef.current.contains(event.target as Node)
-      ) {
+      if (companySearchRef.current && !companySearchRef.current.contains(event.target as Node)) {
         setShowCompanyList(false);
       }
-      if (
-        contactSearchRef.current &&
-        !contactSearchRef.current.contains(event.target as Node)
-      ) {
+      if (contactSearchRef.current && !contactSearchRef.current.contains(event.target as Node)) {
         setShowContactList(false);
       }
     };
@@ -103,7 +91,7 @@ export function DealForm({
 
   useEffect(() => {
     if (companySearchTerm) {
-      const filtered = companies.filter((company) =>
+      const filtered = companies.filter(company =>
         company.name.toLowerCase().includes(companySearchTerm.toLowerCase())
       );
       setFilteredCompanies(filtered);
@@ -116,7 +104,7 @@ export function DealForm({
 
   useEffect(() => {
     if (selectedCompany && contactSearchTerm) {
-      const filtered = contacts.filter((contact) =>
+      const filtered = contacts.filter(contact =>
         contact.name.toLowerCase().includes(contactSearchTerm.toLowerCase())
       );
       setFilteredContacts(filtered);
@@ -199,7 +187,7 @@ export function DealForm({
 
   const handlePipelineChange = (pipelineId: string) => {
     setValue("pipelineId", pipelineId);
-    const selectedPipeline = pipelines.find((p) => p.id === pipelineId);
+    const selectedPipeline = pipelines.find(p => p.id === pipelineId);
     if (selectedPipeline?.stages[0]) {
       setValue("stageId", selectedPipeline.stages[0].id);
     }
@@ -209,7 +197,7 @@ export function DealForm({
   const formatValue = (value: string) => {
     const onlyNumbers = value.replace(/\D/g, "");
     const amount = parseInt(onlyNumbers, 10) / 100;
-    return new Intl.NumberFormat("pt-BR", {
+    return new Intl.NumberFormat('pt-BR', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(amount);
@@ -230,23 +218,14 @@ export function DealForm({
 
   return (
     <>
-      <form
-        id="deal-form"
-        onSubmit={handleSubmit(handleFormSubmit)}
-        className="space-y-6"
-      >
+      <form id="deal-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
         <div className="grid gap-4 grid-cols-2">
           <div className="col-span-1 space-y-2">
-            <Label htmlFor="title" className="required">
-              Título
-            </Label>
+            <Label htmlFor="title" className="required">Título</Label>
             <Input
               id="title"
               {...register("title")}
-              className={cn(
-                errors.title &&
-                  "border-destructive focus-visible:ring-destructive"
-              )}
+              className={cn(errors.title && "border-destructive focus-visible:ring-destructive")}
             />
             {errors.title && (
               <p className="text-sm text-destructive">{errors.title.message}</p>
@@ -254,9 +233,7 @@ export function DealForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="company" className="required">
-              Empresa
-            </Label>
+            <Label htmlFor="company" className="required">Empresa</Label>
             <div className="relative" ref={companySearchRef}>
               <div className="flex gap-2">
                 <div className="relative flex-1">
@@ -282,8 +259,7 @@ export function DealForm({
                         }}
                         className={cn(
                           "pl-9",
-                          errors.companyId &&
-                            "border-destructive focus-visible:ring-destructive"
+                          errors.companyId && "border-destructive focus-visible:ring-destructive"
                         )}
                         placeholder="Buscar empresa..."
                       />
@@ -302,7 +278,7 @@ export function DealForm({
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
-
+              
               {showCompanyList && !selectedCompany && companySearchTerm && (
                 <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-48 overflow-auto">
                   {filteredCompanies.length > 0 ? (
@@ -338,16 +314,12 @@ export function DealForm({
               )}
             </div>
             {errors.companyId && (
-              <p className="text-sm text-destructive">
-                {errors.companyId.message}
-              </p>
+              <p className="text-sm text-destructive">{errors.companyId.message}</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="contact" className="required">
-              Contato
-            </Label>
+            <Label htmlFor="contact" className="required">Contato</Label>
             <div className="relative" ref={contactSearchRef}>
               <div className="flex gap-2">
                 <div className="relative flex-1">
@@ -370,14 +342,9 @@ export function DealForm({
                         }}
                         className={cn(
                           "pl-9",
-                          errors.contactId &&
-                            "border-destructive focus-visible:ring-destructive"
+                          errors.contactId && "border-destructive focus-visible:ring-destructive"
                         )}
-                        placeholder={
-                          selectedCompany
-                            ? "Buscar contato..."
-                            : "Selecione uma empresa primeiro"
-                        }
+                        placeholder={selectedCompany ? "Buscar contato..." : "Selecione uma empresa primeiro"}
                         disabled={!selectedCompany}
                       />
                     </>
@@ -396,7 +363,7 @@ export function DealForm({
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
-
+              
               {showContactList && !selectedContact && contactSearchTerm && (
                 <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-48 overflow-auto">
                   {filteredContacts.length > 0 ? (
@@ -432,9 +399,7 @@ export function DealForm({
               )}
             </div>
             {errors.contactId && (
-              <p className="text-sm text-destructive">
-                {errors.contactId.message}
-              </p>
+              <p className="text-sm text-destructive">{errors.contactId.message}</p>
             )}
           </div>
 
@@ -443,10 +408,7 @@ export function DealForm({
             <Input
               id="value"
               onChange={handleValueChange}
-              className={cn(
-                errors.value &&
-                  "border-destructive focus-visible:ring-destructive"
-              )}
+              className={cn(errors.value && "border-destructive focus-visible:ring-destructive")}
               placeholder="R$ 0,00"
             />
             {errors.value && (
@@ -455,9 +417,7 @@ export function DealForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="pipeline" className="required">
-              Pipeline
-            </Label>
+            <Label htmlFor="pipeline" className="required">Pipeline</Label>
             <Select
               value={watch("pipelineId")}
               onValueChange={handlePipelineChange}
@@ -474,16 +434,12 @@ export function DealForm({
               </SelectContent>
             </Select>
             {errors.pipelineId && (
-              <p className="text-sm text-destructive">
-                {errors.pipelineId.message}
-              </p>
+              <p className="text-sm text-destructive">{errors.pipelineId.message}</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="stage" className="required">
-              Estágio
-            </Label>
+            <Label htmlFor="stage" className="required">Estágio</Label>
             <Select
               value={watch("stageId")}
               onValueChange={(value) => setValue("stageId", value)}
@@ -493,7 +449,7 @@ export function DealForm({
               </SelectTrigger>
               <SelectContent>
                 {pipelines
-                  .find((p) => p.id === watch("pipelineId"))
+                  .find(p => p.id === watch("pipelineId"))
                   ?.stages.map((stage) => (
                     <SelectItem key={stage.id} value={stage.id}>
                       {stage.name}
@@ -502,9 +458,7 @@ export function DealForm({
               </SelectContent>
             </Select>
             {errors.stageId && (
-              <p className="text-sm text-destructive">
-                {errors.stageId.message}
-              </p>
+              <p className="text-sm text-destructive">{errors.stageId.message}</p>
             )}
           </div>
         </div>

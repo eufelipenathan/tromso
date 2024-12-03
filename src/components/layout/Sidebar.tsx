@@ -1,7 +1,7 @@
 "use client";
 
-import { TreeView } from "@mui/x-tree-view/TreeView";
-import { TreeItem } from "@mui/x-tree-view/TreeItem";
+import { TreeView } from '@mui/x-tree-view/TreeView';
+import { TreeItem } from '@mui/x-tree-view/TreeItem';
 import { usePathname, useRouter } from "next/navigation";
 import {
   BarChart3,
@@ -15,25 +15,25 @@ import {
 import { cn } from "@/lib/utils";
 
 const navigation = [
-  {
+  { 
     nodeId: "dashboard",
     label: "Dashboard",
     href: "/dashboard",
     icon: BarChart3,
   },
-  {
+  { 
     nodeId: "empresas",
     label: "Empresas",
     href: "/empresas",
     icon: Building2,
   },
-  {
+  { 
     nodeId: "contatos",
     label: "Contatos",
     href: "/contatos",
     icon: Users,
   },
-  {
+  { 
     nodeId: "negocios",
     label: "Negócios",
     href: "/negocios",
@@ -44,15 +44,20 @@ const navigation = [
     label: "Configurações",
     icon: Settings,
     children: [
-      {
+      { 
         nodeId: "configuracoes-pipelines",
         label: "Pipelines",
         href: "/configuracoes/pipelines",
       },
-      {
+      { 
         nodeId: "configuracoes-motivos-perda",
         label: "Motivos de Perda",
         href: "/configuracoes/motivos-perda",
+      },
+      { 
+        nodeId: "configuracoes-secoes-campos",
+        label: "Seções e campos",
+        href: "/configuracoes/secoes-campos",
       },
     ],
   },
@@ -65,28 +70,26 @@ export function Sidebar() {
   const renderTreeItems = (items: any[]) => {
     return items.map((item) => {
       const Icon = item.icon;
-      const isActive =
-        pathname === item.href || pathname?.startsWith(item.href + "/");
-
+      const isActive = pathname === item.href;
+      
       const label = (
-        <div
+        <div 
           className={cn(
-            "flex items-center gap-2 py-2 transition-colors duration-200",
-            isActive
-              ? "text-primary font-medium"
-              : "text-muted-foreground hover:text-foreground"
+            "flex items-center gap-2 py-1.5 px-2 rounded-md transition-colors",
+            isActive ? "bg-primary/5 text-primary" : "hover:bg-muted"
           )}
+          onClick={() => item.href && router.push(item.href)}
         >
           {Icon && <Icon className="h-4 w-4" />}
-          <span>{item.label}</span>
+          <span className="text-sm">{item.label}</span>
         </div>
       );
 
       if (item.children) {
         return (
-          <TreeItem
-            key={item.nodeId}
-            nodeId={item.nodeId}
+          <TreeItem 
+            key={item.nodeId} 
+            nodeId={item.nodeId} 
             label={label}
             className="group"
           >
@@ -96,26 +99,14 @@ export function Sidebar() {
       }
 
       return (
-        <TreeItem
-          key={item.nodeId}
-          nodeId={item.nodeId}
+        <TreeItem 
+          key={item.nodeId} 
+          nodeId={item.nodeId} 
           label={label}
-          onClick={() => item.href && router.push(item.href)}
-          className={cn(
-            "group transition-colors duration-200",
-            isActive && "bg-primary/5 rounded-md"
-          )}
+          className="group"
         />
       );
     });
-  };
-
-  // Find the parent nodeId of the current active path
-  const findExpandedParent = () => {
-    const activeItem = navigation.find((item) =>
-      item.children?.some((child) => pathname?.startsWith(child.href))
-    );
-    return activeItem ? [activeItem.nodeId] : [];
   };
 
   return (
@@ -127,23 +118,23 @@ export function Sidebar() {
         <TreeView
           defaultCollapseIcon={<ChevronDown className="h-4 w-4" />}
           defaultExpandIcon={<ChevronRight className="h-4 w-4" />}
-          defaultExpanded={findExpandedParent()}
           sx={{
-            "& .MuiTreeItem-content": {
-              padding: "2px 8px",
-              borderRadius: "6px",
-              transition: "all 0.2s ease",
-              "&:hover": {
-                backgroundColor: "var(--mui-palette-action-hover)",
-              },
-              "&.Mui-focused, &.Mui-selected": {
-                backgroundColor: "transparent",
+            '& .MuiTreeItem-content': {
+              padding: '0 !important',
+              backgroundColor: 'transparent !important',
+            },
+            '& .MuiTreeItem-group': {
+              marginLeft: '1.5rem !important',
+              borderLeft: '1px dashed rgba(0,0,0,0.1)',
+              dark: {
+                borderColor: 'rgba(255,255,255,0.1)',
               },
             },
-            "& .MuiTreeItem-group": {
-              marginLeft: "16px",
-              borderLeft: "1px dashed var(--mui-palette-divider)",
-              paddingLeft: "8px",
+            '& .Mui-selected': {
+              backgroundColor: 'transparent !important',
+            },
+            '& .Mui-focused': {
+              backgroundColor: 'transparent !important',
             },
           }}
         >
