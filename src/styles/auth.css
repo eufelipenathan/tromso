@@ -1,11 +1,41 @@
-/* Aurora Animation */
-@keyframes aurora-wave {
+/* Theme Transition */
+.theme-transition {
+  @apply transition-all duration-1500 ease-in-out;
+}
+
+/* Shared Animations */
+@keyframes flow-shift {
+  0%, 100% { 
+    transform: translateY(0) scale(1);
+    filter: brightness(1) blur(8px);
+  }
+  50% { 
+    transform: translateY(-1.5%) scale(1.01);
+    filter: brightness(1.1) blur(10px);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.8; }
+}
+
+/* Blue Hour Animation */
+@keyframes snow-wave {
   0%, 100% {
-    transform: translateY(0) scaleY(1) rotate(0deg);
+    transform: translateY(0);
+    filter: brightness(1) saturate(1);
   }
   50% {
-    transform: translateY(-15%) scaleY(1.2) rotate(5deg);
+    transform: translateY(-0.5%);
+    filter: brightness(1.05) saturate(1.1);
   }
+}
+
+/* Aurora Animation */
+@keyframes aurora-wave {
+  0%, 100% { transform: translateY(0) scaleY(1) rotate(0deg); }
+  50% { transform: translateY(-15%) scaleY(1.2) rotate(5deg); }
 }
 
 @keyframes aurora-glow {
@@ -20,36 +50,82 @@
 }
 
 @keyframes aurora-color {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 /* Background Setup */
 .auth-background-light {
   @apply fixed inset-0 z-0 overflow-hidden;
   background: linear-gradient(to bottom,
-    hsl(230, 40%, 15%),
-    hsl(230, 40%, 10%)
+    hsl(210, 40%, 35%),
+    hsl(200, 40%, 25%)
   );
 }
 
 .auth-background-dark {
   @apply fixed inset-0 z-0 overflow-hidden;
   background: linear-gradient(to bottom,
-    hsl(230, 40%, 8%),
-    hsl(230, 40%, 3%)
+    hsl(230, 40%, 15%),
+    hsl(230, 40%, 5%)
   );
+}
+
+/* Blue Hour Elements */
+.blue-hour-container {
+  @apply absolute inset-0 overflow-hidden opacity-0 transition-opacity duration-1500;
+}
+
+.light .blue-hour-container {
+  @apply opacity-100;
+}
+
+.snow-layer {
+  @apply absolute inset-0;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    hsla(200, 100%, 97%, 0.1) 20%,
+    hsla(200, 100%, 97%, 0.6) 50%,
+    hsla(200, 100%, 97%, 0.8) 80%
+  );
+  animation: snow-wave 10s ease-in-out infinite;
+}
+
+.blue-flow {
+  @apply absolute inset-0;
+  background: 
+    linear-gradient(120deg,
+      transparent,
+      hsla(185, 100%, 85%, 0.15) 20%,
+      hsla(190, 100%, 80%, 0.2) 40%,
+      hsla(185, 100%, 85%, 0.15) 60%,
+      transparent
+    );
+  animation: flow-shift 18s ease-in-out infinite;
+}
+
+.cyan-flow {
+  @apply absolute inset-0;
+  background: 
+    linear-gradient(60deg,
+      transparent,
+      hsla(180, 100%, 85%, 0.15) 20%,
+      hsla(175, 100%, 80%, 0.2) 40%,
+      hsla(180, 100%, 85%, 0.15) 60%,
+      transparent
+    );
+  animation: flow-shift 15s ease-in-out infinite reverse;
 }
 
 /* Aurora Container */
 .aurora-container {
-  @apply absolute inset-0 overflow-hidden;
+  @apply absolute inset-0 overflow-hidden opacity-0 transition-opacity duration-1500;
   perspective: 1000px;
   transform-style: preserve-3d;
+}
+
+.dark .aurora-container {
+  @apply opacity-100;
 }
 
 /* Aurora Ribbons */
@@ -120,6 +196,37 @@
     transparent
   );
   animation-delay: -4s;
+}
+
+/* Theme Toggle */
+.theme-toggle {
+  @apply fixed top-6 right-6 p-3 rounded-full transition-all duration-500;
+  @apply bg-white/10 hover:bg-white/20 backdrop-blur-md;
+  @apply border border-white/20 shadow-lg;
+  @apply flex items-center justify-center;
+  @apply text-white hover:text-white;
+  @apply z-50;
+}
+
+.theme-toggle-icon {
+  @apply w-5 h-5 transition-all duration-700;
+  @apply absolute opacity-0 scale-75 rotate-0;
+}
+
+.light .theme-toggle-icon.sun {
+  @apply opacity-100 scale-100 rotate-0;
+}
+
+.light .theme-toggle-icon.moon {
+  @apply opacity-0 scale-75 -rotate-90;
+}
+
+.dark .theme-toggle-icon.sun {
+  @apply opacity-0 scale-75 rotate-90;
+}
+
+.dark .theme-toggle-icon.moon {
+  @apply opacity-100 scale-100 rotate-0;
 }
 
 /* Auth Container */
