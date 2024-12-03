@@ -24,7 +24,7 @@ export const companySchema = z.object({
     .transform(value => {
       if (!value) return null;
       if (!value.startsWith('http://') && !value.startsWith('https://')) {
-        return `https://${value}`;
+        return `https://${value}`;  // Corrigido para usar crases
       }
       return value;
     })
@@ -48,13 +48,14 @@ export const contactSchema = z.object({
   email: z.string()
     .email("Email inválido")
     .optional()
-    .nullable(),
-  phone: z.string()
+    .or(z.literal("")),
+    phone: z.string()
+    .regex(phoneRegex, "Telefone inválido")
     .optional()
-    .nullable(),
+    .or(z.literal("")),
   position: z.string()
     .optional()
-    .nullable(),
+    .or(z.literal("")),
   companyId: z.string().min(1, "Empresa é obrigatória"),
 });
 

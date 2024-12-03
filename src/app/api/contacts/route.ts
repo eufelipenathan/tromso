@@ -3,10 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const createContactSchema = z.object({
-  name: z.string().min(1),
-  email: z.string().email().optional().nullable(),
-  phone: z.string().optional(),
-  position: z.string().optional(),
+  name: z.string().min(1, "Nome é obrigatório"),
+  email: z.string().email("Email inválido").optional().nullable(),
+  phone: z.string().optional().nullable(),
+  position: z.string().optional().nullable(),
   companyId: z.string(),
 });
 

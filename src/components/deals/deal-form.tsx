@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect, useRef } from "react";
@@ -19,11 +20,10 @@ import { FormModal } from "@/components/ui/form-modal";
 import { CompanyForm } from "@/components/companies/company-form";
 import { ContactForm } from "@/components/contacts/contact-form";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 const dealSchema = z.object({
   title: z.string().min(1, "Título é obrigatório"),
-  value: z.string().min(1, "Valor é obrigatório"),
+  value: z.string().optional(),
   companyId: z.string().min(1, "Empresa é obrigatória"),
   contactId: z.string().min(1, "Contato é obrigatório"),
   pipelineId: z.string().min(1, "Pipeline é obrigatório"),
@@ -70,6 +70,7 @@ export function DealForm({ pipeline, pipelines, onClose, onSubmit, onPipelineCha
       pipelineId: pipeline.id,
       stageId: pipeline.stages[0]?.id,
     },
+    mode: "onSubmit", // Alterado para validar apenas no submit
   });
 
   useEffect(() => {
@@ -211,7 +212,7 @@ export function DealForm({ pipeline, pipelines, onClose, onSubmit, onPipelineCha
   const handleFormSubmit = async (data: DealFormData) => {
     await onSubmit({
       ...data,
-      value: parseFloat(data.value) / 100,
+      value: parseFloat(data.value || "0") / 100,
     });
   };
 
@@ -256,7 +257,6 @@ export function DealForm({ pipeline, pipelines, onClose, onSubmit, onPipelineCha
                             setContactSearchTerm("");
                           }
                         }}
-                        onFocus={() => setShowCompanyList(true)}
                         className={cn(
                           "pl-9",
                           errors.companyId && "border-destructive focus-visible:ring-destructive"
@@ -279,7 +279,7 @@ export function DealForm({ pipeline, pipelines, onClose, onSubmit, onPipelineCha
                 </Button>
               </div>
               
-              {showCompanyList && !selectedCompany && (
+              {showCompanyList && !selectedCompany && companySearchTerm && (
                 <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-48 overflow-auto">
                   {filteredCompanies.length > 0 ? (
                     filteredCompanies.map((company) => (
@@ -294,22 +294,20 @@ export function DealForm({ pipeline, pipelines, onClose, onSubmit, onPipelineCha
                     ))
                   ) : (
                     <div className="px-4 py-2 text-sm text-muted-foreground">
-                      {companySearchTerm && (
-                        <div className="flex flex-col gap-2">
-                          <span>Nenhuma empresa encontrada</span>
-                          <Button
-                            type="button"
-                            variant="link"
-                            className="h-auto p-0 text-primary justify-start"
-                            onClick={() => {
-                              setShowCompanyForm(true);
-                              setShowCompanyList(false);
-                            }}
-                          >
-                            Clique aqui para cadastrar
-                          </Button>
-                        </div>
-                      )}
+                      <div className="flex flex-col gap-2">
+                        <span>Nenhuma empresa encontrada</span>
+                        <Button
+                          type="button"
+                          variant="link"
+                          className="h-auto p-0 text-primary justify-start"
+                          onClick={() => {
+                            setShowCompanyForm(true);
+                            setShowCompanyList(false);
+                          }}
+                        >
+                          Clique aqui para cadastrar
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -342,7 +340,6 @@ export function DealForm({ pipeline, pipelines, onClose, onSubmit, onPipelineCha
                             setValue("contactId", "");
                           }
                         }}
-                        onFocus={() => selectedCompany && setShowContactList(true)}
                         className={cn(
                           "pl-9",
                           errors.contactId && "border-destructive focus-visible:ring-destructive"
@@ -367,7 +364,7 @@ export function DealForm({ pipeline, pipelines, onClose, onSubmit, onPipelineCha
                 </Button>
               </div>
               
-              {showContactList && !selectedContact && (
+              {showContactList && !selectedContact && contactSearchTerm && (
                 <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-48 overflow-auto">
                   {filteredContacts.length > 0 ? (
                     filteredContacts.map((contact) => (
@@ -382,22 +379,20 @@ export function DealForm({ pipeline, pipelines, onClose, onSubmit, onPipelineCha
                     ))
                   ) : (
                     <div className="px-4 py-2 text-sm text-muted-foreground">
-                      {contactSearchTerm && (
-                        <div className="flex flex-col gap-2">
-                          <span>Nenhum contato encontrado</span>
-                          <Button
-                            type="button"
-                            variant="link"
-                            className="h-auto p-0 text-primary justify-start"
-                            onClick={() => {
-                              setShowContactForm(true);
-                              setShowContactList(false);
-                            }}
-                          >
-                            Clique aqui para cadastrar
-                          </Button>
-                        </div>
-                      )}
+                      <div className="flex flex-col gap-2">
+                        <span>Nenhum contato encontrado</span>
+                        <Button
+                          type="button"
+                          variant="link"
+                          className="h-auto p-0 text-primary justify-start"
+                          onClick={() => {
+                            setShowContactForm(true);
+                            setShowContactList(false);
+                          }}
+                        >
+                          Clique aqui para cadastrar
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -409,7 +404,7 @@ export function DealForm({ pipeline, pipelines, onClose, onSubmit, onPipelineCha
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="value" className="required">Valor</Label>
+            <Label htmlFor="value">Valor</Label>
             <Input
               id="value"
               onChange={handleValueChange}
@@ -474,6 +469,7 @@ export function DealForm({ pipeline, pipelines, onClose, onSubmit, onPipelineCha
         onClose={() => setShowCompanyForm(false)}
         title="Nova Empresa"
         isSubmitting={isSubmittingCompany}
+        formId="company-form"
       >
         <CompanyForm
           onSubmit={handleCompanySubmit}
@@ -486,6 +482,7 @@ export function DealForm({ pipeline, pipelines, onClose, onSubmit, onPipelineCha
         onClose={() => setShowContactForm(false)}
         title="Novo Contato"
         isSubmitting={isSubmittingContact}
+        formId="contact-form"
       >
         <ContactForm
           onSubmit={handleContactSubmit}
