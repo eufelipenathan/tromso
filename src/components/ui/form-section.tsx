@@ -7,10 +7,16 @@ import { useState } from "react";
 interface FormSectionProps {
   title: string;
   defaultOpen?: boolean;
+  hasRequiredFields?: boolean;
   children: React.ReactNode;
 }
 
-export function FormSection({ title, defaultOpen = false, children }: FormSectionProps) {
+export function FormSection({
+  title,
+  defaultOpen = false,
+  hasRequiredFields = false,
+  children,
+}: FormSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
@@ -26,10 +32,13 @@ export function FormSection({ title, defaultOpen = false, children }: FormSectio
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
         )}
         <span className="text-sm font-medium">{title}</span>
+        {hasRequiredFields && !isOpen && (
+          <span className="ml-2 text-xs text-destructive">
+            • Contém campos obrigatórios
+          </span>
+        )}
       </button>
-      <div className={cn("p-4", !isOpen && "hidden")}>
-        {children}
-      </div>
+      <div className={cn("p-4", !isOpen && "hidden")}>{children}</div>
     </div>
   );
 }

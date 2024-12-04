@@ -11,6 +11,7 @@ import { cnpjMask, phoneMask, cepMask } from "@/lib/masks";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { STATES } from "@/lib/constants";
+import { CustomFields } from "@/components/form/custom-fields";
 
 interface CompanyFormProps {
   onSubmit: (data: CompanyFormData) => Promise<void>;
@@ -62,7 +63,7 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
       try {
         const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
         const data = await response.json();
-        
+
         if (!data.erro) {
           setValue("street", data.logradouro);
           setValue("neighborhood", data.bairro);
@@ -79,15 +80,24 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
   };
 
   return (
-    <form id="company-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form
+      id="company-form"
+      onSubmit={handleSubmit(onSubmit)}
+      className="space-y-6"
+    >
       <FormSection title="Informações básicas" defaultOpen>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="name" className="required">Nome</Label>
-            <Input 
-              id="name" 
+            <Label htmlFor="name" className="required">
+              Nome
+            </Label>
+            <Input
+              id="name"
               {...register("name")}
-              className={cn(errors.name && "border-destructive focus-visible:ring-destructive")}
+              className={cn(
+                errors.name &&
+                  "border-destructive focus-visible:ring-destructive"
+              )}
             />
             {errors.name && (
               <p className="text-sm text-destructive">{errors.name.message}</p>
@@ -96,13 +106,16 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="cnpj">CNPJ</Label>
-            <Input 
-              id="cnpj" 
+            <Input
+              id="cnpj"
               value={watch("cnpj") || ""}
               onChange={handleCNPJChange}
               onBlur={() => trigger("cnpj")}
               placeholder="00.000.000/0000-00"
-              className={cn(errors.cnpj && "border-destructive focus-visible:ring-destructive")}
+              className={cn(
+                errors.cnpj &&
+                  "border-destructive focus-visible:ring-destructive"
+              )}
             />
             {errors.cnpj && (
               <p className="text-sm text-destructive">{errors.cnpj.message}</p>
@@ -111,13 +124,16 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input 
-              id="email" 
-              type="email" 
+            <Input
+              id="email"
+              type="email"
               {...register("email")}
               onBlur={() => trigger("email")}
               placeholder="exemplo@email.com"
-              className={cn(errors.email && "border-destructive focus-visible:ring-destructive")}
+              className={cn(
+                errors.email &&
+                  "border-destructive focus-visible:ring-destructive"
+              )}
             />
             {errors.email && (
               <p className="text-sm text-destructive">{errors.email.message}</p>
@@ -126,13 +142,16 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="phone">Telefone</Label>
-            <Input 
-              id="phone" 
+            <Input
+              id="phone"
               value={watch("phone") || ""}
               onChange={handlePhoneChange}
               onBlur={() => trigger("phone")}
               placeholder="(00) 00000-0000"
-              className={cn(errors.phone && "border-destructive focus-visible:ring-destructive")}
+              className={cn(
+                errors.phone &&
+                  "border-destructive focus-visible:ring-destructive"
+              )}
             />
             {errors.phone && (
               <p className="text-sm text-destructive">{errors.phone.message}</p>
@@ -141,15 +160,20 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
 
           <div className="space-y-2 col-span-2">
             <Label htmlFor="website">Site</Label>
-            <Input 
-              id="website" 
+            <Input
+              id="website"
               {...register("website")}
               onBlur={() => trigger("website")}
               placeholder="www.exemplo.com.br"
-              className={cn(errors.website && "border-destructive focus-visible:ring-destructive")}
+              className={cn(
+                errors.website &&
+                  "border-destructive focus-visible:ring-destructive"
+              )}
             />
             {errors.website && (
-              <p className="text-sm text-destructive">{errors.website.message}</p>
+              <p className="text-sm text-destructive">
+                {errors.website.message}
+              </p>
             )}
           </div>
         </div>
@@ -159,13 +183,16 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="cep">CEP</Label>
-            <Input 
-              id="cep" 
+            <Input
+              id="cep"
               value={watch("cep") || ""}
               onChange={handleCEPChange}
               onBlur={handleCEPBlur}
               placeholder="00000-000"
-              className={cn(errors.cep && "border-destructive focus-visible:ring-destructive")}
+              className={cn(
+                errors.cep &&
+                  "border-destructive focus-visible:ring-destructive"
+              )}
               disabled={isSearchingCep}
             />
             {errors.cep && (
@@ -175,16 +202,13 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="street">Endereço</Label>
-            <Input 
-              id="street" 
-              {...register("street")}
-            />
+            <Input id="street" {...register("street")} />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="number">Número</Label>
-            <Input 
-              id="number" 
+            <Input
+              id="number"
               value={watch("number") || ""}
               onChange={handleNumberChange}
               inputMode="numeric"
@@ -198,18 +222,12 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="neighborhood">Bairro</Label>
-            <Input 
-              id="neighborhood" 
-              {...register("neighborhood")}
-            />
+            <Input id="neighborhood" {...register("neighborhood")} />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="city">Cidade</Label>
-            <Input 
-              id="city" 
-              {...register("city")}
-            />
+            <Input id="city" {...register("city")} />
           </div>
 
           <div className="space-y-2">
@@ -234,6 +252,14 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
           </div>
         </div>
       </FormSection>
+
+      <CustomFields
+        entityType="company"
+        register={register}
+        watch={watch}
+        errors={errors}
+        setValue={setValue}
+      />
     </form>
   );
 }

@@ -89,6 +89,8 @@ model CustomField {
   required      Boolean   @default(false)
   fullWidth     Boolean   @default(false)
   multiple      Boolean   @default(false)
+  visible       Boolean   @default(true)
+  editable      Boolean   @default(true)
   order         Int
   options       String?   // JSON array for select fields
   sectionId     String

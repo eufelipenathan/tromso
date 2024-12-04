@@ -14,7 +14,10 @@ interface BaseToolbarProps {
   searchPlaceholder: string;
 }
 
-export function BaseToolbar({ onSearchChange, searchPlaceholder }: BaseToolbarProps) {
+export function BaseToolbar({
+  onSearchChange,
+  searchPlaceholder,
+}: BaseToolbarProps) {
   return (
     <GridToolbarContainer
       sx={{
@@ -34,16 +37,21 @@ export function BaseToolbar({ onSearchChange, searchPlaceholder }: BaseToolbarPr
             backgroundColor: "background.paper",
             "& fieldset": {
               borderColor: "divider",
+              borderWidth: "1px",
             },
             "&:hover fieldset": {
               borderColor: "divider",
             },
             "&.Mui-focused fieldset": {
-              border: "none",
+              borderColor: "divider !important",
+              borderWidth: "1px !important",
+              boxShadow: "none !important",
             },
-          },
-          "& .MuiOutlinedInput-notchedOutline": {
-            border: "none",
+            "& .MuiOutlinedInput-input": {
+              "&:focus": {
+                boxShadow: "none",
+              },
+            },
           },
         }}
         InputProps={{
