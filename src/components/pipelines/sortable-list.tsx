@@ -61,11 +61,13 @@ export function SortableList({ onEdit }: SortableListProps) {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const oldIndex = pipelines.findIndex((pipeline) => pipeline.id === active.id);
+    const oldIndex = pipelines.findIndex(
+      (pipeline) => pipeline.id === active.id
+    );
     const newIndex = pipelines.findIndex((pipeline) => pipeline.id === over.id);
 
     const newPipelines = arrayMove(pipelines, oldIndex, newIndex);
-    
+
     // Optimistic update
     setPipelines(newPipelines);
 
@@ -93,46 +95,40 @@ export function SortableList({ onEdit }: SortableListProps) {
 
   if (isLoading) {
     return (
-      <div className="rounded-lg border bg-card">
-        <div className="p-8 text-center text-sm text-muted-foreground">
-          Carregando pipelines...
-        </div>
+      <div className="p-8 text-center text-sm text-muted-foreground">
+        Carregando pipelines...
       </div>
     );
   }
 
   if (pipelines.length === 0) {
     return (
-      <div className="rounded-lg border bg-card">
-        <div className="p-8 text-center text-sm text-muted-foreground">
-          Nenhum pipeline cadastrado
-        </div>
+      <div className="p-8 text-center text-sm text-muted-foreground">
+        Nenhum pipeline cadastrado
       </div>
     );
   }
 
   return (
-    <div className="rounded-lg border bg-card">
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext
+        items={pipelines.map((p) => p.id)}
+        strategy={verticalListSortingStrategy}
       >
-        <SortableContext
-          items={pipelines.map((p) => p.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          <div className="divide-y">
-            {pipelines.map((pipeline) => (
-              <SortableItem
-                key={pipeline.id}
-                pipeline={pipeline}
-                onEdit={() => onEdit(pipeline)}
-              />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
-    </div>
+        <div className="divide-y">
+          {pipelines.map((pipeline) => (
+            <SortableItem
+              key={pipeline.id}
+              pipeline={pipeline}
+              onEdit={() => onEdit(pipeline)}
+            />
+          ))}
+        </div>
+      </SortableContext>
+    </DndContext>
   );
 }

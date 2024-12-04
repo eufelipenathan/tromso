@@ -19,21 +19,28 @@ export function LostReasonList() {
     try {
       setIsSubmitting(true);
 
-      const response = await fetch("/api/lost-reasons" + (editingReason ? `/${editingReason.id}` : ""), {
-        method: editingReason ? "PATCH" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+      const response = await fetch(
+        "/api/lost-reasons" + (editingReason ? `/${editingReason.id}` : ""),
+        {
+          method: editingReason ? "PATCH" : "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error(`Erro ao ${editingReason ? 'atualizar' : 'cadastrar'} motivo de perda`);
+        throw new Error(
+          `Erro ao ${editingReason ? "atualizar" : "cadastrar"} motivo de perda`
+        );
       }
 
       toast({
         title: "Sucesso",
-        description: `Motivo de perda ${editingReason ? 'atualizado' : 'cadastrado'} com sucesso`,
+        description: `Motivo de perda ${
+          editingReason ? "atualizado" : "cadastrado"
+        } com sucesso`,
       });
 
       setShowForm(false);
@@ -43,7 +50,8 @@ export function LostReasonList() {
       toast({
         variant: "destructive",
         title: "Erro",
-        description: error instanceof Error ? error.message : "Ocorreu um erro inesperado",
+        description:
+          error instanceof Error ? error.message : "Ocorreu um erro inesperado",
       });
     } finally {
       setIsSubmitting(false);
@@ -57,14 +65,16 @@ export function LostReasonList() {
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-6 flex justify-end">
         <Button onClick={() => setShowForm(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Novo Motivo
         </Button>
       </div>
 
-      <SortableList onEdit={handleEdit} />
+      <div className="rounded-lg border bg-card overflow-hidden">
+        <SortableList onEdit={handleEdit} />
+      </div>
 
       <FormModal
         open={showForm}

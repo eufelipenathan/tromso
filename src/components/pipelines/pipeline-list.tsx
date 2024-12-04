@@ -19,21 +19,28 @@ export function PipelineList() {
     try {
       setIsSubmitting(true);
 
-      const response = await fetch("/api/pipelines" + (editingPipeline ? `/${editingPipeline.id}` : ""), {
-        method: editingPipeline ? "PATCH" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+      const response = await fetch(
+        "/api/pipelines" + (editingPipeline ? `/${editingPipeline.id}` : ""),
+        {
+          method: editingPipeline ? "PATCH" : "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error(`Erro ao ${editingPipeline ? 'atualizar' : 'cadastrar'} pipeline`);
+        throw new Error(
+          `Erro ao ${editingPipeline ? "atualizar" : "cadastrar"} pipeline`
+        );
       }
 
       toast({
         title: "Sucesso",
-        description: `Pipeline ${editingPipeline ? 'atualizado' : 'cadastrado'} com sucesso`,
+        description: `Pipeline ${
+          editingPipeline ? "atualizado" : "cadastrado"
+        } com sucesso`,
       });
 
       setShowForm(false);
@@ -43,7 +50,8 @@ export function PipelineList() {
       toast({
         variant: "destructive",
         title: "Erro",
-        description: error instanceof Error ? error.message : "Ocorreu um erro inesperado",
+        description:
+          error instanceof Error ? error.message : "Ocorreu um erro inesperado",
       });
     } finally {
       setIsSubmitting(false);
@@ -57,14 +65,16 @@ export function PipelineList() {
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-6 flex justify-end">
         <Button onClick={() => setShowForm(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Novo Pipeline
         </Button>
       </div>
 
-      <SortableList onEdit={handleEdit} />
+      <div className="rounded-lg border bg-card overflow-hidden">
+        <SortableList onEdit={handleEdit} />
+      </div>
 
       <FormModal
         open={showForm}
@@ -76,10 +86,7 @@ export function PipelineList() {
         isSubmitting={isSubmitting}
         formId="pipeline-form"
       >
-        <PipelineForm
-          initialData={editingPipeline}
-          onSubmit={handleSubmit}
-        />
+        <PipelineForm initialData={editingPipeline} onSubmit={handleSubmit} />
       </FormModal>
     </div>
   );

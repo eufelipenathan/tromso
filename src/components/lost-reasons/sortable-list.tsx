@@ -65,7 +65,7 @@ export function SortableList({ onEdit }: SortableListProps) {
     const newIndex = reasons.findIndex((reason) => reason.id === over.id);
 
     const newReasons = arrayMove(reasons, oldIndex, newIndex);
-    
+
     // Optimistic update
     setReasons(newReasons);
 
@@ -93,46 +93,40 @@ export function SortableList({ onEdit }: SortableListProps) {
 
   if (isLoading) {
     return (
-      <div className="rounded-lg border bg-card">
-        <div className="p-8 text-center text-sm text-muted-foreground">
-          Carregando motivos de perda...
-        </div>
+      <div className="p-8 text-center text-sm text-muted-foreground">
+        Carregando motivos de perda...
       </div>
     );
   }
 
   if (reasons.length === 0) {
     return (
-      <div className="rounded-lg border bg-card">
-        <div className="p-8 text-center text-sm text-muted-foreground">
-          Nenhum motivo de perda cadastrado
-        </div>
+      <div className="p-8 text-center text-sm text-muted-foreground">
+        Nenhum motivo de perda cadastrado
       </div>
     );
   }
 
   return (
-    <div className="rounded-lg border bg-card">
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext
+        items={reasons.map((r) => r.id)}
+        strategy={verticalListSortingStrategy}
       >
-        <SortableContext
-          items={reasons.map((r) => r.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          <div className="divide-y">
-            {reasons.map((reason) => (
-              <SortableItem
-                key={reason.id}
-                reason={reason}
-                onEdit={() => onEdit(reason)}
-              />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
-    </div>
+        <div className="divide-y">
+          {reasons.map((reason) => (
+            <SortableItem
+              key={reason.id}
+              reason={reason}
+              onEdit={() => onEdit(reason)}
+            />
+          ))}
+        </div>
+      </SortableContext>
+    </DndContext>
   );
 }
