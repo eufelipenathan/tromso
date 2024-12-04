@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import {
@@ -17,48 +17,35 @@ import { useToast } from "@/hooks/use-toast";
 export default function FormEditorPage() {
   const [selectedEntity, setSelectedEntity] = useState<string>("company");
   const [showSectionDialog, setShowSectionDialog] = useState(false);
-  const [sections, setSections] = useState<any[]>([]);
+  const [key, setKey] = useState(0);
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadSections();
-  }, [selectedEntity]);
-
-  const loadSections = async () => {
+  const handleCreateSection = async (data: { name: string }) => {
     try {
-      const response = await fetch(
+      // First check if section with same name exists
+      const checkResponse = await fetch(
         `/api/form-sections?entityType=${selectedEntity}`
       );
-      if (!response.ok) throw new Error("Falha ao carregar seções");
-      const data = await response.json();
-      setSections(data);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Falha ao carregar seções",
-      });
-    }
-  };
+      if (!checkResponse.ok)
+        throw new Error("Erro ao verificar seções existentes");
 
-  const handleCreateSection = async (data: { name: string }) => {
-    // Verificar se já existe uma seção com o mesmo nome
-    const existingSection = sections.find(
-      (section) => section.name.toLowerCase() === data.name.toLowerCase()
-    );
+      const existingSections = await checkResponse.json();
+      const sectionExists = existingSections.some(
+        (section: any) => section.name.toLowerCase() === data.name.toLowerCase()
+      );
 
-    if (existingSection) {
-      toast({
-        variant: "warning",
-        title: "Atenção",
-        description:
-          "Já existe uma seção com este nome para esta entidade. Por favor, escolha um nome diferente.",
-      });
-      return;
-    }
+      if (sectionExists) {
+        toast({
+          variant: "warning",
+          title: "Atenção",
+          description:
+            "Já existe uma seção com este nome para esta entidade. Por favor, escolha um nome diferente.",
+        });
+        return false; // Return false to keep dialog open
+      }
 
-    try {
-      const response = await fetch("/api/form-sections", {
+      // Create new section
+      const createResponse = await fetch("/api/form-sections", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -67,7 +54,7 @@ export default function FormEditorPage() {
         }),
       });
 
-      if (!response.ok) {
+      if (!createResponse.ok) {
         throw new Error("Erro ao criar seção");
       }
 
@@ -77,13 +64,15 @@ export default function FormEditorPage() {
       });
 
       setShowSectionDialog(false);
-      loadSections();
+      setKey((prev) => prev + 1);
+      return true; // Return true to close dialog
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Erro",
         description: "Ocorreu um erro ao criar a seção",
       });
+      return false; // Return false to keep dialog open
     }
   };
 
@@ -114,7 +103,7 @@ export default function FormEditorPage() {
         </Button>
       </div>
 
-      <FormEditor entityType={selectedEntity} />
+      <FormEditor key={key} entityType={selectedEntity} />
 
       <SectionDialog
         open={showSectionDialog}

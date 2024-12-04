@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { FormSection } from "./form-section";
 import {
   DndContext,
@@ -13,9 +13,9 @@ import {
 import {
   SortableContext,
   verticalListSortingStrategy,
+  arrayMove,
 } from "@dnd-kit/sortable";
 import { useToast } from "@/hooks/use-toast";
-import { useFormEditorStore } from "@/stores/use-form-editor-store";
 
 interface FormEditorProps {
   entityType: string;
@@ -23,8 +23,8 @@ interface FormEditorProps {
 
 export function FormEditor({ entityType }: FormEditorProps) {
   const [isLoading, setIsLoading] = useState(true);
+  const [sections, setSections] = useState<any[]>([]);
   const { toast } = useToast();
-  const { sections, setSections, reorderSections } = useFormEditorStore();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -34,7 +34,7 @@ export function FormEditor({ entityType }: FormEditorProps) {
     })
   );
 
-  const loadSections = useCallback(async () => {
+  const loadSections = async () => {
     try {
       setIsLoading(true);
       const response = await fetch(
@@ -52,49 +52,46 @@ export function FormEditor({ entityType }: FormEditorProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [entityType, toast, setSections]);
+  };
 
   useEffect(() => {
     loadSections();
-  }, [loadSections]);
+  }, [entityType]);
 
-  const handleDragEnd = useCallback(
-    async (event: DragEndEvent) => {
-      const { active, over } = event;
-      if (!over || active.id === over.id) return;
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
 
-      const activeId = active.id as string;
-      const overId = over.id as string;
+    const oldIndex = sections.findIndex((section) => section.id === active.id);
+    const newIndex = sections.findIndex((section) => section.id === over.id);
 
-      // Optimistic update
-      reorderSections(activeId, overId);
+    // Optimistic update
+    const newSections = arrayMove(sections, oldIndex, newIndex);
+    setSections(newSections);
 
-      try {
-        const response = await fetch("/api/form-sections/reorder", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sectionId: activeId,
-            newIndex: sections.findIndex((s) => s.id === overId),
-          }),
-        });
+    try {
+      const response = await fetch("/api/form-sections/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sectionId: active.id,
+          newIndex,
+        }),
+      });
 
-        if (!response.ok) throw new Error("Falha ao reordenar seções");
-
-        // Refresh sections after reordering
-        await loadSections();
-      } catch (error) {
-        // Revert on error
-        await loadSections();
-        toast({
-          variant: "destructive",
-          title: "Erro",
-          description: "Falha ao reordenar seções",
-        });
+      if (!response.ok) {
+        throw new Error("Falha ao reordenar seções");
       }
-    },
-    [sections, toast, reorderSections, loadSections]
-  );
+    } catch (error) {
+      // Rollback on error
+      setSections(sections);
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Falha ao reordenar seções",
+      });
+    }
+  };
 
   if (isLoading) {
     return (

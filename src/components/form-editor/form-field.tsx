@@ -25,9 +25,9 @@ interface FormFieldProps {
   index: number;
   sectionId: string;
   sections: Array<{ id: string; name: string }>;
-  onUpdate?: (field: any) => void;
-  onDelete?: (field: any) => void;
-  onMove?: (field: any, targetSectionId: string) => void;
+  onUpdate: () => void;
+  onDelete: () => void;
+  onMove: () => void;
   existingFields?: { name: string }[];
 }
 
@@ -44,28 +44,20 @@ export function FormField({
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showMoveDialog, setShowMoveDialog] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: field.id });
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: field.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    position: "relative",
-    zIndex: isDragging ? 50 : 0,
-    opacity: isDragging ? 0.5 : 1,
-    touchAction: "none",
   };
 
   const handleUpdateField = async (data: any) => {
     try {
+      setIsSubmitting(true);
       const response = await fetch(`/api/form-sections/fields/${field.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -76,24 +68,26 @@ export function FormField({
         throw new Error("Erro ao atualizar campo");
       }
 
-      const updatedField = await response.json();
-      onUpdate?.(updatedField);
-
       toast({
         title: "Sucesso",
         description: "Campo atualizado com sucesso",
       });
+
+      onUpdate();
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Erro",
         description: "Ocorreu um erro ao atualizar o campo",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleDeleteField = async () => {
     try {
+      setIsSubmitting(true);
       const response = await fetch(`/api/form-sections/fields/${field.id}`, {
         method: "DELETE",
       });
@@ -102,23 +96,26 @@ export function FormField({
         throw new Error("Erro ao excluir campo");
       }
 
-      onDelete?.(field);
-
       toast({
         title: "Sucesso",
         description: "Campo excluído com sucesso",
       });
+
+      onDelete();
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Erro",
         description: "Ocorreu um erro ao excluir o campo",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleMoveField = async (targetSectionId: string) => {
     try {
+      setIsSubmitting(true);
       const response = await fetch(
         `/api/form-sections/fields/${field.id}/move`,
         {
@@ -132,18 +129,20 @@ export function FormField({
         throw new Error("Erro ao mover campo");
       }
 
-      onMove?.(field, targetSectionId);
-
       toast({
         title: "Sucesso",
         description: "Campo movido com sucesso",
       });
+
+      onMove();
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Erro",
         description: "Ocorreu um erro ao mover o campo",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -181,6 +180,7 @@ export function FormField({
                 <Switch
                   checked={field.required}
                   onCheckedChange={handleRequiredChange}
+                  disabled={isSubmitting}
                 />
                 <Label className="text-xs">Obrigatório</Label>
               </div>

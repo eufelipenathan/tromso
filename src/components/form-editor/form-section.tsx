@@ -1,12 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { GripVertical, Plus, MoreVertical } from "lucide-react";
 import { FormField } from "./form-field";
-import { useState } from "react";
 import { FieldDialog } from "./field-dialog";
 import {
   DropdownMenu,
@@ -27,9 +27,9 @@ import {
 } from "@dnd-kit/core";
 import {
   SortableContext,
+  arrayMove,
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { useFormEditorStore } from "@/stores/use-form-editor-store";
 
 interface FormSectionProps {
   section: any;
@@ -47,16 +47,8 @@ export function FormSection({
   const [showFieldDialog, setShowFieldDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [fields, setFields] = useState(section.fields);
   const { toast } = useToast();
-  const {
-    updateSection,
-    removeSection,
-    addField,
-    updateField,
-    removeField,
-    reorderFields,
-    moveField,
-  } = useFormEditorStore();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -66,14 +58,8 @@ export function FormSection({
     })
   );
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: section.id });
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: section.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -81,25 +67,7 @@ export function FormSection({
   };
 
   const handleCreateField = async (data: any) => {
-    // Check if field name already exists in this section
-    const fieldExists = section.fields.some(
-      (field: any) => field.name.toLowerCase() === data.name.toLowerCase()
-    );
-
-    if (fieldExists) {
-      toast({
-        variant: "warning",
-        title: "Atenção",
-        description:
-          "Já existe um campo com este nome nesta seção. Por favor, escolha um nome diferente.",
-      });
-      return false;
-    }
-
     try {
-      // Optimistic update
-      addField(section.id, data);
-
       const response = await fetch(`/api/form-sections/${section.id}/fields`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -115,16 +83,14 @@ export function FormSection({
         description: "Campo criado com sucesso",
       });
 
-      onSectionCreated(); // Refresh sections after creating field
+      onSectionCreated();
       setShowFieldDialog(false);
-      return true;
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Erro",
         description: "Ocorreu um erro ao criar o campo",
       });
-      return false;
     }
   };
 
@@ -146,9 +112,6 @@ export function FormSection({
         return false;
       }
 
-      // Optimistic update
-      updateSection(section.id, data.name);
-
       const response = await fetch(`/api/form-sections/${section.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -164,7 +127,7 @@ export function FormSection({
         description: "Seção atualizada com sucesso",
       });
 
-      onSectionCreated(); // Refresh sections after updating
+      onSectionCreated();
       setShowEditDialog(false);
       return true;
     } catch (error) {
@@ -189,9 +152,6 @@ export function FormSection({
         return;
       }
 
-      // Optimistic update
-      removeSection(section.id);
-
       const response = await fetch(`/api/form-sections/${section.id}`, {
         method: "DELETE",
       });
@@ -205,7 +165,7 @@ export function FormSection({
         description: "Seção excluída com sucesso",
       });
 
-      onSectionCreated(); // Refresh sections after deleting
+      onSectionCreated();
     } catch (error) {
       toast({
         variant: "destructive",
@@ -219,81 +179,33 @@ export function FormSection({
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    try {
-      // Optimistic update
-      reorderFields(section.id, active.id as string, over.id as string);
+    const oldIndex = fields.findIndex((field: any) => field.id === active.id);
+    const newIndex = fields.findIndex((field: any) => field.id === over.id);
 
+    // Optimistic update
+    const newFields = arrayMove(fields, oldIndex, newIndex);
+    setFields(newFields);
+
+    try {
       const response = await fetch("/api/form-sections/fields/reorder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fieldId: active.id,
-          newIndex: section.fields.findIndex((f: any) => f.id === over.id),
+          newIndex,
           sectionId: section.id,
         }),
       });
 
       if (!response.ok) throw new Error("Falha ao reordenar campos");
-
-      onSectionCreated(); // Refresh sections after reordering
     } catch (error) {
+      // Rollback on error
+      setFields(fields);
       toast({
         variant: "destructive",
         title: "Erro",
         description: "Falha ao reordenar campos",
       });
-    }
-  };
-
-  const handleFieldUpdate = async (updatedField: any) => {
-    try {
-      // Check if field name already exists in this section (excluding the current field)
-      const fieldExists = section.fields.some(
-        (field: any) =>
-          field.id !== updatedField.id &&
-          field.name.toLowerCase() === updatedField.name.toLowerCase()
-      );
-
-      if (fieldExists) {
-        toast({
-          variant: "warning",
-          title: "Atenção",
-          description:
-            "Já existe um campo com este nome nesta seção. Por favor, escolha um nome diferente.",
-        });
-        return false;
-      }
-
-      // Optimistic update
-      updateField(section.id, updatedField.id, updatedField);
-
-      const response = await fetch(
-        `/api/form-sections/fields/${updatedField.id}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedField),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Erro ao atualizar campo");
-      }
-
-      toast({
-        title: "Sucesso",
-        description: "Campo atualizado com sucesso",
-      });
-
-      onSectionCreated(); // Refresh sections after updating field
-      return true;
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Ocorreu um erro ao atualizar o campo",
-      });
-      return false;
     }
   };
 
@@ -352,7 +264,7 @@ export function FormSection({
           </div>
         </CardHeader>
         <CardContent>
-          {section.fields?.length === 0 ? (
+          {fields?.length === 0 ? (
             <div className="text-center py-8 text-sm text-muted-foreground">
               Nenhum campo configurado nesta seção
             </div>
@@ -363,27 +275,21 @@ export function FormSection({
               onDragEnd={handleFieldDragEnd}
             >
               <SortableContext
-                items={section.fields.map((f: any) => f.id)}
+                items={fields.map((f: any) => f.id)}
                 strategy={horizontalListSortingStrategy}
               >
                 <div className="grid grid-cols-2 gap-4">
-                  {section.fields?.map((field: any, fieldIndex: number) => (
+                  {fields?.map((field: any, fieldIndex: number) => (
                     <FormField
                       key={field.id}
                       field={field}
                       index={fieldIndex}
                       sectionId={section.id}
                       sections={sections}
-                      onUpdate={handleFieldUpdate}
-                      onDelete={() => {
-                        removeField(section.id, field.id);
-                        onSectionCreated();
-                      }}
-                      onMove={(field, targetSectionId) => {
-                        moveField(field, section.id, targetSectionId);
-                        onSectionCreated();
-                      }}
-                      existingFields={section.fields}
+                      onUpdate={onSectionCreated}
+                      onDelete={onSectionCreated}
+                      onMove={onSectionCreated}
+                      existingFields={fields}
                     />
                   ))}
                 </div>
@@ -397,7 +303,7 @@ export function FormSection({
         open={showFieldDialog}
         onOpenChange={setShowFieldDialog}
         onSubmit={handleCreateField}
-        existingFields={section.fields}
+        existingFields={fields}
       />
 
       <SectionDialog

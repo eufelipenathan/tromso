@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,12 +18,11 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
 
 interface MoveFieldDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onMove: (targetSectionId: string) => void;
+  onMove: (targetSectionId: string) => Promise<void>;
   currentSectionId: string;
   sections: Array<{ id: string; name: string }>;
 }
@@ -77,10 +76,7 @@ export function MoveFieldDialog({
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label>Seção de destino</Label>
-            <Select
-              value={selectedSection}
-              onValueChange={setSelectedSection}
-            >
+            <Select value={selectedSection} onValueChange={setSelectedSection}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione uma seção" />
               </SelectTrigger>
@@ -96,10 +92,7 @@ export function MoveFieldDialog({
         </div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
           <Button

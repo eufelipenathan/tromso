@@ -85,7 +85,6 @@ export function FieldDialog({
   const selectedType = watch("type");
 
   const handleFormSubmit = async (data: FieldFormData) => {
-    // Verifica se já existe um campo com o mesmo nome na seção
     const fieldExists = existingFields.some(
       (field) =>
         field.name.toLowerCase() === data.name.toLowerCase() &&
@@ -105,12 +104,7 @@ export function FieldDialog({
 
     try {
       setIsSubmitting(true);
-      await onSubmit({
-        ...data,
-        required: Boolean(data.required),
-        fullWidth: Boolean(data.fullWidth),
-        multiple: Boolean(data.multiple),
-      });
+      await onSubmit(data);
       reset();
       onOpenChange(false);
     } finally {
