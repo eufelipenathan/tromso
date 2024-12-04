@@ -1,4 +1,3 @@
-// src/components/form-editor/section-dialog.tsx
 "use client";
 
 import { useState } from "react";
@@ -50,8 +49,8 @@ export function SectionDialog({
   const handleFormSubmit = async (data: SectionFormData) => {
     try {
       setIsSubmitting(true);
-      const shouldClose = await onSubmit(data);
-      if (shouldClose) {
+      const success = await onSubmit(data);
+      if (success) {
         reset();
         onOpenChange(false);
       }
@@ -61,7 +60,15 @@ export function SectionDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(newOpen) => {
+        if (!newOpen) {
+          reset();
+        }
+        onOpenChange(newOpen);
+      }}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>

@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
 const fieldSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -39,6 +40,7 @@ interface FieldDialogProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: FieldFormData) => Promise<void>;
   initialData?: Partial<FieldFormData>;
+  existingFields?: { name: string }[];
 }
 
 const fieldTypes = [
@@ -51,14 +53,16 @@ const fieldTypes = [
   { value: "textarea", label: "Área de Texto" },
 ];
 
-export function FieldDialog({ 
-  open, 
-  onOpenChange, 
+export function FieldDialog({
+  open,
+  onOpenChange,
   onSubmit,
-  initialData 
+  initialData,
+  existingFields = [],
 }: FieldDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const { toast } = useToast();
+
   const {
     register,
     handleSubmit,
@@ -81,6 +85,24 @@ export function FieldDialog({
   const selectedType = watch("type");
 
   const handleFormSubmit = async (data: FieldFormData) => {
+    // Verifica se já existe um campo com o mesmo nome na seção
+    const fieldExists = existingFields.some(
+      (field) =>
+        field.name.toLowerCase() === data.name.toLowerCase() &&
+        (!initialData ||
+          initialData.name?.toLowerCase() !== data.name.toLowerCase())
+    );
+
+    if (fieldExists) {
+      toast({
+        variant: "warning",
+        title: "Atenção",
+        description:
+          "Já existe um campo com este nome nesta seção. Por favor, escolha um nome diferente.",
+      });
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       await onSubmit({
@@ -109,10 +131,7 @@ export function FieldDialog({
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nome</Label>
-              <Input
-                id="name"
-                {...register("name")}
-              />
+              <Input id="name" {...register("name")} />
               {errors.name && (
                 <p className="text-sm text-destructive">
                   {errors.name.message}

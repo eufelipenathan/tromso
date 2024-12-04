@@ -28,6 +28,7 @@ interface FormFieldProps {
   onUpdate?: (field: any) => void;
   onDelete?: (field: any) => void;
   onMove?: (field: any, targetSectionId: string) => void;
+  existingFields?: { name: string }[];
 }
 
 export function FormField({
@@ -38,12 +39,13 @@ export function FormField({
   onUpdate,
   onDelete,
   onMove,
+  existingFields = [],
 }: FormFieldProps) {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showMoveDialog, setShowMoveDialog] = useState(false);
   const { toast } = useToast();
-  
+
   const {
     attributes,
     listeners,
@@ -117,11 +119,14 @@ export function FormField({
 
   const handleMoveField = async (targetSectionId: string) => {
     try {
-      const response = await fetch(`/api/form-sections/fields/${field.id}/move`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ targetSectionId }),
-      });
+      const response = await fetch(
+        `/api/form-sections/fields/${field.id}/move`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ targetSectionId }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Erro ao mover campo");
@@ -192,7 +197,7 @@ export function FormField({
                   <DropdownMenuItem onClick={() => setShowMoveDialog(true)}>
                     Mover para...
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     className="text-destructive"
                     onClick={() => setShowDeleteDialog(true)}
                   >
@@ -210,6 +215,7 @@ export function FormField({
         onOpenChange={setShowEditDialog}
         onSubmit={handleUpdateField}
         initialData={field}
+        existingFields={existingFields}
       />
 
       <MoveFieldDialog

@@ -15,15 +15,16 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useToast } from "@/hooks/use-toast";
+import { useFormEditorStore } from "@/stores/use-form-editor-store";
 
 interface FormEditorProps {
   entityType: string;
 }
 
 export function FormEditor({ entityType }: FormEditorProps) {
-  const [sections, setSections] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { sections, setSections, reorderSections } = useFormEditorStore();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -51,7 +52,7 @@ export function FormEditor({ entityType }: FormEditorProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [entityType, toast]);
+  }, [entityType, toast, setSections]);
 
   useEffect(() => {
     loadSections();
@@ -65,77 +66,34 @@ export function FormEditor({ entityType }: FormEditorProps) {
       const activeId = active.id as string;
       const overId = over.id as string;
 
-      // Check if we're dealing with a section
-      const activeSection = sections.find((s) => s.id === activeId);
+      // Optimistic update
+      reorderSections(activeId, overId);
 
-      if (activeSection) {
-        // Section drag
-        try {
-          const oldIndex = sections.findIndex((s) => s.id === activeId);
-          const newIndex = sections.findIndex((s) => s.id === overId);
+      try {
+        const response = await fetch("/api/form-sections/reorder", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sectionId: activeId,
+            newIndex: sections.findIndex((s) => s.id === overId),
+          }),
+        });
 
-          // Optimistic update
-          const newSections = [...sections];
-          const [removed] = newSections.splice(oldIndex, 1);
-          newSections.splice(newIndex, 0, removed);
-          setSections(newSections);
+        if (!response.ok) throw new Error("Falha ao reordenar seções");
 
-          const response = await fetch("/api/form-sections/reorder", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              sectionId: activeId,
-              newIndex,
-            }),
-          });
-
-          if (!response.ok) throw new Error("Falha ao reordenar seções");
-        } catch (error) {
-          // Revert on error
-          setSections(sections);
-          toast({
-            variant: "destructive",
-            title: "Erro",
-            description: "Falha ao reordenar seções",
-          });
-        }
+        // Refresh sections after reordering
+        await loadSections();
+      } catch (error) {
+        // Revert on error
+        await loadSections();
+        toast({
+          variant: "destructive",
+          title: "Erro",
+          description: "Falha ao reordenar seções",
+        });
       }
     },
-    [sections, toast]
-  );
-
-  const handleFieldsReorder = useCallback(
-    (sectionId: string, newFields: any[]) => {
-      setSections((currentSections) =>
-        currentSections.map((section) =>
-          section.id === sectionId ? { ...section, fields: newFields } : section
-        )
-      );
-    },
-    []
-  );
-
-  const handleFieldMove = useCallback(
-    (field: any, fromSectionId: string, toSectionId: string) => {
-      setSections((currentSections) =>
-        currentSections.map((section) => {
-          if (section.id === fromSectionId) {
-            return {
-              ...section,
-              fields: section.fields.filter((f) => f.id !== field.id),
-            };
-          }
-          if (section.id === toSectionId) {
-            return {
-              ...section,
-              fields: [...section.fields, field],
-            };
-          }
-          return section;
-        })
-      );
-    },
-    []
+    [sections, toast, reorderSections, loadSections]
   );
 
   if (isLoading) {
@@ -177,8 +135,7 @@ export function FormEditor({ entityType }: FormEditorProps) {
                   section={section}
                   index={index}
                   sections={sections}
-                  onFieldsReorder={handleFieldsReorder}
-                  onFieldMove={handleFieldMove}
+                  onSectionCreated={loadSections}
                 />
               ))}
             </div>

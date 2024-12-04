@@ -39,6 +39,11 @@ export default async function DashboardPage() {
 
   const [activeDeals, wonDeals, activeCompanies, totalValue] = metrics;
 
+  // Convert Decimal to number before passing to client component
+  const totalValueNumber = totalValue._sum.value
+    ? Number(totalValue._sum.value)
+    : 0;
+
   return (
     <div className="p-6">
       <div className="mb-8">
@@ -54,7 +59,7 @@ export default async function DashboardPage() {
         activeDeals={activeDeals}
         wonDeals={wonDeals}
         activeCompanies={activeCompanies}
-        totalValue={totalValue._sum.value || 0}
+        totalValue={totalValueNumber}
       />
 
       <div className="mt-8">
