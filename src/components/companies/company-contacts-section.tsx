@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
-import { Search, Plus, Trash2, Edit2, Clock } from "lucide-react";
+import { Search, Plus, Edit2, X } from "lucide-react";
 import {
   Input,
   Button,
   FormModal,
   ConfirmationDialog,
-  Badge,
   FormSection,
 } from "@/components/ui";
 import { Contact } from "@prisma/client";
@@ -86,8 +85,23 @@ export function CompanyContactsSection() {
   };
 
   const handleNewContactClick = (e: React.MouseEvent) => {
-    e.preventDefault(); // Previne a propagação do evento para o formulário pai
+    e.preventDefault();
+    e.stopPropagation();
     setShowContactForm(true);
+  };
+
+  const handleEditClick = (e: React.MouseEvent, contact: Contact) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedContact(contact);
+    setShowContactForm(true);
+  };
+
+  const handleRemoveClick = (e: React.MouseEvent, contact: Contact) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedContact(contact);
+    setShowDeleteDialog(true);
   };
 
   return (
@@ -141,64 +155,17 @@ export function CompanyContactsSection() {
               </div>
             )}
           </div>
-          <Button onClick={handleNewContactClick}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Contato
+          <Button variant="outline" size="icon" onClick={handleNewContactClick}>
+            <Plus className="h-4 w-4" />
           </Button>
         </div>
 
         {(temporaryContacts.length > 0 || selectedContacts.length > 0) && (
-          <div className="space-y-2">
+          <div className="space-y-1">
             {temporaryContacts.map((contact) => (
               <div
                 key={contact.id}
-                className="flex items-center justify-between p-4 border rounded-lg"
-              >
-                <div className="flex items-center gap-2">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{contact.name}</span>
-                      <Badge variant="secondary" className="gap-1">
-                        <Clock className="h-3 w-3" />
-                        <span>Temporário</span>
-                      </Badge>
-                    </div>
-                    {contact.email && (
-                      <span className="text-sm text-muted-foreground">
-                        {contact.email}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      setSelectedContact(contact);
-                      setShowContactForm(true);
-                    }}
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      setSelectedContact(contact);
-                      setShowDeleteDialog(true);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-
-            {selectedContacts.map((contact) => (
-              <div
-                key={contact.id}
-                className="flex items-center justify-between p-4 border rounded-lg"
+                className="flex items-center justify-between p-2 border rounded-lg"
               >
                 <div>
                   <span className="font-medium">{contact.name}</span>
@@ -208,23 +175,56 @@ export function CompanyContactsSection() {
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => {
-                      setSelectedContact(contact);
-                      setShowContactForm(true);
-                    }}
+                    className="h-8 w-8"
+                    onClick={(e) => handleEditClick(e, contact)}
                   >
                     <Edit2 className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleDissociateContact(contact)}
+                    className="h-8 w-8"
+                    onClick={(e) => handleRemoveClick(e, contact)}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+
+            {selectedContacts.map((contact) => (
+              <div
+                key={contact.id}
+                className="flex items-center justify-between p-2 border rounded-lg"
+              >
+                <div>
+                  <span className="font-medium">{contact.name}</span>
+                  {contact.email && (
+                    <span className="block text-sm text-muted-foreground">
+                      {contact.email}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => handleEditClick(e, contact)}
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => handleRemoveClick(e, contact)}
+                  >
+                    <X className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -238,6 +238,7 @@ export function CompanyContactsSection() {
         onClose={() => {
           setShowContactForm(false);
           setSelectedContact(null);
+          setSearchTerm("");
         }}
         title={selectedContact ? "Editar Contato" : "Novo Contato"}
         isSubmitting={isLoading}
@@ -253,6 +254,7 @@ export function CompanyContactsSection() {
             }
             setShowContactForm(false);
             setSelectedContact(null);
+            setSearchTerm("");
           }}
         />
       </FormModal>
@@ -260,9 +262,9 @@ export function CompanyContactsSection() {
       <ConfirmationDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
-        title="Excluir contato"
-        description="Tem certeza que deseja excluir este contato? Esta ação não pode ser desfeita."
-        confirmText="Excluir"
+        title="Remover contato"
+        description="Tem certeza que deseja remover este contato da lista?"
+        confirmText="Remover"
         onConfirm={() => {
           if (selectedContact) {
             if (selectedContact.id.startsWith("temp_")) {
