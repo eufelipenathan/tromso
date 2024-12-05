@@ -1,0 +1,243 @@
+/* Theme Transition */
+.theme-transition {
+  @apply transition-all duration-1500 ease-in-out;
+}
+
+/* Shared Animations */
+@keyframes flow-shift {
+  0%, 100% { 
+    transform: translateY(0) scale(1);
+    filter: brightness(1) blur(8px);
+  }
+  50% { 
+    transform: translateY(-1.5%) scale(1.01);
+    filter: brightness(1.1) blur(10px);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.8; }
+}
+
+/* Blue Hour Animation */
+@keyframes snow-wave {
+  0%, 100% {
+    transform: translateY(0);
+    filter: brightness(1) saturate(1);
+  }
+  50% {
+    transform: translateY(-0.5%);
+    filter: brightness(1.05) saturate(1.1);
+  }
+}
+
+/* Aurora Animation */
+@keyframes aurora-wave {
+  0%, 100% { transform: translateY(0) scaleY(1) rotate(0deg); }
+  50% { transform: translateY(-15%) scaleY(1.2) rotate(5deg); }
+}
+
+@keyframes aurora-glow {
+  0%, 100% {
+    opacity: 0.5;
+    filter: blur(30px) brightness(1);
+  }
+  50% {
+    opacity: 0.8;
+    filter: blur(40px) brightness(1.2);
+  }
+}
+
+@keyframes aurora-color {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Background Setup */
+.auth-background-light {
+  @apply fixed inset-0 z-0 overflow-hidden;
+  background: linear-gradient(to bottom,
+    hsl(210, 40%, 35%),
+    hsl(200, 40%, 25%)
+  );
+}
+
+.auth-background-dark {
+  @apply fixed inset-0 z-0 overflow-hidden;
+  background: linear-gradient(to bottom,
+    hsl(230, 40%, 15%),
+    hsl(230, 40%, 5%)
+  );
+}
+
+/* Blue Hour Elements */
+.blue-hour-container {
+  @apply absolute inset-0 overflow-hidden opacity-0 transition-opacity duration-1500;
+}
+
+.light .blue-hour-container {
+  @apply opacity-100;
+}
+
+.snow-layer {
+  @apply absolute inset-0;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    hsla(200, 100%, 97%, 0.1) 20%,
+    hsla(200, 100%, 97%, 0.6) 50%,
+    hsla(200, 100%, 97%, 0.8) 80%
+  );
+  animation: snow-wave 10s ease-in-out infinite;
+}
+
+.blue-flow {
+  @apply absolute inset-0;
+  background: 
+    linear-gradient(120deg,
+      transparent,
+      hsla(185, 100%, 85%, 0.15) 20%,
+      hsla(190, 100%, 80%, 0.2) 40%,
+      hsla(185, 100%, 85%, 0.15) 60%,
+      transparent
+    );
+  animation: flow-shift 18s ease-in-out infinite;
+}
+
+.cyan-flow {
+  @apply absolute inset-0;
+  background: 
+    linear-gradient(60deg,
+      transparent,
+      hsla(180, 100%, 85%, 0.15) 20%,
+      hsla(175, 100%, 80%, 0.2) 40%,
+      hsla(180, 100%, 85%, 0.15) 60%,
+      transparent
+    );
+  animation: flow-shift 15s ease-in-out infinite reverse;
+}
+
+/* Aurora Container */
+.aurora-container {
+  @apply absolute inset-0 overflow-hidden opacity-0 transition-opacity duration-1500;
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+.dark .aurora-container {
+  @apply opacity-100;
+}
+
+/* Aurora Ribbons */
+.aurora-ribbon {
+  position: absolute;
+  width: 200%;
+  height: 60%;
+  top: -10%;
+  left: -50%;
+  transform-origin: 50% 100%;
+  animation: aurora-wave 20s ease-in-out infinite;
+}
+
+.aurora-ribbon::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 255, 128, 0.5),
+    rgba(0, 255, 196, 0.5),
+    rgba(0, 247, 255, 0.5),
+    rgba(0, 255, 128, 0.5),
+    transparent
+  );
+  background-size: 200% 200%;
+  animation: 
+    aurora-glow 8s ease-in-out infinite,
+    aurora-color 10s linear infinite;
+  filter: blur(30px);
+}
+
+.aurora-ribbon:nth-child(2) {
+  top: 0;
+  transform: rotate(4deg);
+  animation-delay: -5s;
+}
+
+.aurora-ribbon:nth-child(2)::before {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 0, 128, 0.3),
+    rgba(255, 0, 255, 0.3),
+    rgba(128, 0, 255, 0.3),
+    rgba(255, 0, 128, 0.3),
+    transparent
+  );
+  animation-delay: -2s;
+}
+
+.aurora-ribbon:nth-child(3) {
+  top: 5%;
+  transform: rotate(-5deg);
+  animation-delay: -10s;
+}
+
+.aurora-ribbon:nth-child(3)::before {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 255, 196, 0.4),
+    rgba(0, 255, 255, 0.4),
+    rgba(0, 196, 255, 0.4),
+    rgba(0, 255, 196, 0.4),
+    transparent
+  );
+  animation-delay: -4s;
+}
+
+/* Theme Toggle */
+.theme-toggle {
+  @apply fixed top-6 right-6 p-3 rounded-full transition-all duration-500;
+  @apply bg-white/10 hover:bg-white/20 backdrop-blur-md;
+  @apply border border-white/20 shadow-lg;
+  @apply flex items-center justify-center;
+  @apply text-white hover:text-white;
+  @apply z-50;
+}
+
+.theme-toggle-icon {
+  @apply w-5 h-5 transition-all duration-700;
+  @apply absolute opacity-0 scale-75 rotate-0;
+}
+
+.light .theme-toggle-icon.sun {
+  @apply opacity-100 scale-100 rotate-0;
+}
+
+.light .theme-toggle-icon.moon {
+  @apply opacity-0 scale-75 -rotate-90;
+}
+
+.dark .theme-toggle-icon.sun {
+  @apply opacity-0 scale-75 rotate-90;
+}
+
+.dark .theme-toggle-icon.moon {
+  @apply opacity-100 scale-100 rotate-0;
+}
+
+/* Auth Container */
+.auth-container {
+  @apply relative z-10 w-full max-w-md mx-auto;
+}
+
+.auth-card {
+  @apply relative bg-background/80 backdrop-blur-xl rounded-xl shadow-2xl border p-8;
+  box-shadow: 
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1),
+    0 0 0 1px rgb(0 0 0 / 0.05);
+}
