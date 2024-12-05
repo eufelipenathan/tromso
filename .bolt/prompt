@@ -1,9 +1,0 @@
-Never run 'npx next dev'
-Never run any other npx command
-Never run 'npm install'
-Never run 'npm run dev'
-Never run any other npm command
-Always return responses in pt-br
-Always provide the complete code for the files in the repository, without using placeholders or comments indicating that part of the code remains the same.
-Be objective in chat responses
-Do not return codes in chat

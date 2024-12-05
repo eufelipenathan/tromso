@@ -1,5 +1,0 @@
-next-env.d.ts
-next.config.js
-postcss.config.js
-prisma\seed.ts
-tailwind.config.ts
