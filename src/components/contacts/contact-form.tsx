@@ -41,15 +41,17 @@ export function ContactForm({
     },
   });
 
-  const handleFormSubmit = async (data: ContactFormData) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); // Previne a propagação do submit
+    e.stopPropagation(); // Garante que o evento não se propague
+
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
     try {
       setIsSubmitting(true);
-      await onSubmit({
-        ...data,
-        email: data.email || null,
-        phone: data.phone || null,
-        position: data.position || null,
-      });
+      await onSubmit(data as ContactFormData);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -74,11 +76,7 @@ export function ContactForm({
   }, [selectedCompany, setValue]);
 
   return (
-    <form
-      id="contact-form"
-      onSubmit={handleSubmit(handleFormSubmit)}
-      className="space-y-6"
-    >
+    <form id="contact-form" onSubmit={handleFormSubmit} className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="name" className="required">

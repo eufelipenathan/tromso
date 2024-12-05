@@ -39,8 +39,18 @@ export function FormModal({
 
   if (!open) return null;
 
-  const handleClose = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
+  const handleModalOpenChange = (open: boolean) => {
+    if (!open) {
+      if (hasTemporaryData) {
+        setShowConfirmClose(true);
+      } else {
+        onClose();
+      }
+    }
+  };
+
+  const handleCloseClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (hasTemporaryData) {
       setShowConfirmClose(true);
     } else {
@@ -48,10 +58,26 @@ export function FormModal({
     }
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const form = document.getElementById(formId) as HTMLFormElement;
+    if (form) {
+      const submitEvent = new Event("submit", {
+        bubbles: true,
+        cancelable: true,
+      });
+      form.dispatchEvent(submitEvent);
+    }
+  };
+
   return (
     <Portal>
-      <Modal open={open} onOpenChange={handleClose}>
-        <ModalContent className="w-[800px]">
+      <Modal open={open} onOpenChange={handleModalOpenChange}>
+        <ModalContent
+          className="w-[800px]"
+          onClick={(e) => e.stopPropagation()}
+        >
           <ModalHeader className="h-16 flex items-center justify-between border-b px-6 rounded-t-lg">
             <div>
               <ModalTitle className="text-lg font-semibold">{title}</ModalTitle>
@@ -65,7 +91,7 @@ export function FormModal({
               variant="ghost"
               size="icon"
               className="h-8 w-8"
-              onClick={handleClose}
+              onClick={handleCloseClick}
             >
               <X className="h-4 w-4" />
             </Button>
@@ -80,7 +106,7 @@ export function FormModal({
               type="button"
               variant="outline"
               size="sm"
-              onClick={handleClose}
+              onClick={handleCloseClick}
             >
               Cancelar
             </Button>
@@ -88,7 +114,7 @@ export function FormModal({
               type="submit"
               size="sm"
               disabled={isSubmitting}
-              form={formId}
+              onClick={handleSubmit}
             >
               {isSubmitting ? "Salvando..." : "Salvar"}
             </Button>

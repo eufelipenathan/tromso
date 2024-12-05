@@ -2,19 +2,15 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Button,
-  Input,
-  Label,
-  FormSection,
-} from "@/components/ui";
+import { Button, Input, Label, FormSection } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { companySchema, type CompanyFormData } from "@/lib/validations";
 import { cnpjMask, phoneMask, cepMask } from "@/lib/masks";
 import { STATES } from "@/lib/constants";
 import { CustomFields } from "@/components/form/custom-fields";
 import { CompanyContactsSection } from "./company-contacts-section";
-import { useCompanyContactsStore } from "@/stores/use-company-contacts-store";
+import { useCompanyStore } from "@/stores/use-company-store";
+import { useEffect } from "react";
 
 interface CompanyFormProps {
   onSubmit: (data: CompanyFormData) => Promise<void>;
@@ -33,6 +29,21 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
     resolver: zodResolver(companySchema),
     defaultValues: initialData,
   });
+
+  const { formData, setFormData } = useCompanyStore();
+
+  useEffect(() => {
+    if (formData) {
+      Object.entries(formData).forEach(([key, value]) => {
+        setValue(key as keyof CompanyFormData, value);
+      });
+    }
+  }, [formData, setValue]);
+
+  const handleFormSubmit = async (data: CompanyFormData) => {
+    setFormData(data);
+    await onSubmit(data);
+  };
 
   const handleCNPJChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -72,10 +83,15 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
     trigger("cep");
   };
 
+  const handleFieldChange = (name: keyof CompanyFormData, value: any) => {
+    setValue(name, value);
+    setFormData({ ...formData, [name]: value });
+  };
+
   return (
     <form
       id="company-form"
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit(handleFormSubmit)}
       className="space-y-6"
     >
       <FormSection title="Informações básicas" defaultOpen>
@@ -87,6 +103,7 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
             <Input
               id="name"
               {...register("name")}
+              onChange={(e) => handleFieldChange("name", e.target.value)}
               className={cn(
                 errors.name &&
                   "border-destructive focus-visible:ring-destructive"
@@ -102,7 +119,10 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
             <Input
               id="cnpj"
               value={watch("cnpj") || ""}
-              onChange={handleCNPJChange}
+              onChange={(e) => {
+                handleCNPJChange(e);
+                handleFieldChange("cnpj", e.target.value);
+              }}
               onBlur={() => trigger("cnpj")}
               placeholder="00.000.000/0000-00"
               className={cn(
@@ -121,6 +141,7 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
               id="email"
               type="email"
               {...register("email")}
+              onChange={(e) => handleFieldChange("email", e.target.value)}
               onBlur={() => trigger("email")}
               placeholder="exemplo@email.com"
               className={cn(
@@ -138,7 +159,10 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
             <Input
               id="phone"
               value={watch("phone") || ""}
-              onChange={handlePhoneChange}
+              onChange={(e) => {
+                handlePhoneChange(e);
+                handleFieldChange("phone", e.target.value);
+              }}
               onBlur={() => trigger("phone")}
               placeholder="(00) 00000-0000"
               className={cn(
@@ -156,6 +180,7 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
             <Input
               id="website"
               {...register("website")}
+              onChange={(e) => handleFieldChange("website", e.target.value)}
               onBlur={() => trigger("website")}
               placeholder="www.exemplo.com.br"
               className={cn(
@@ -181,7 +206,10 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
             <Input
               id="cep"
               value={watch("cep") || ""}
-              onChange={handleCEPChange}
+              onChange={(e) => {
+                handleCEPChange(e);
+                handleFieldChange("cep", e.target.value);
+              }}
               onBlur={handleCEPBlur}
               placeholder="00000-000"
               className={cn(
@@ -196,27 +224,49 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="street">Endereço</Label>
-            <Input id="street" {...register("street")} />
+            <Input
+              id="street"
+              {...register("street")}
+              onChange={(e) => handleFieldChange("street", e.target.value)}
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="number">Número</Label>
-            <Input id="number" {...register("number")} />
+            <Input
+              id="number"
+              {...register("number")}
+              onChange={(e) => handleFieldChange("number", e.target.value)}
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="complement">Complemento</Label>
-            <Input id="complement" {...register("complement")} />
+            <Input
+              id="complement"
+              {...register("complement")}
+              onChange={(e) => handleFieldChange("complement", e.target.value)}
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="neighborhood">Bairro</Label>
-            <Input id="neighborhood" {...register("neighborhood")} />
+            <Input
+              id="neighborhood"
+              {...register("neighborhood")}
+              onChange={(e) =>
+                handleFieldChange("neighborhood", e.target.value)
+              }
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="city">Cidade</Label>
-            <Input id="city" {...register("city")} />
+            <Input
+              id="city"
+              {...register("city")}
+              onChange={(e) => handleFieldChange("city", e.target.value)}
+            />
           </div>
 
           <div className="space-y-2">
@@ -224,6 +274,7 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
             <select
               id="state"
               {...register("state")}
+              onChange={(e) => handleFieldChange("state", e.target.value)}
               className="block w-full h-[38px] rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             >
               <option value="">Selecione</option>
@@ -237,7 +288,11 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="mailbox">Caixa Postal</Label>
-            <Input id="mailbox" {...register("mailbox")} />
+            <Input
+              id="mailbox"
+              {...register("mailbox")}
+              onChange={(e) => handleFieldChange("mailbox", e.target.value)}
+            />
           </div>
         </div>
       </FormSection>

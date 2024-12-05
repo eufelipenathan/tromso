@@ -85,6 +85,11 @@ export function CompanyContactsSection() {
     }
   };
 
+  const handleNewContactClick = (e: React.MouseEvent) => {
+    e.preventDefault(); // Previne a propagação do evento para o formulário pai
+    setShowContactForm(true);
+  };
+
   return (
     <FormSection title="Contatos">
       <div className="space-y-4">
@@ -105,7 +110,7 @@ export function CompanyContactsSection() {
                 <Button
                   variant="link"
                   className="p-0 h-auto text-primary"
-                  onClick={() => setShowContactForm(true)}
+                  onClick={handleNewContactClick}
                 >
                   Clique aqui para cadastrar
                 </Button>
@@ -136,7 +141,7 @@ export function CompanyContactsSection() {
               </div>
             )}
           </div>
-          <Button onClick={() => setShowContactForm(true)}>
+          <Button onClick={handleNewContactClick}>
             <Plus className="h-4 w-4 mr-2" />
             Novo Contato
           </Button>
