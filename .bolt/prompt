@@ -1,9 +1,30 @@
-Never run 'npx next dev'
-Never run any other npx command
-Never run 'npm install'
-Never run 'npm run dev'
-Never run any other npm command
-Always return responses in pt-br
-Always provide the complete code for the files in the repository, without using placeholders or comments indicating that part of the code remains the same.
-Be objective in chat responses
-Do not return codes in chat
+# Instruções Críticas de Código
+
+1. Ao modificar arquivos:
+   - SEMPRE forneça o conteúdo COMPLETO do arquivo
+   - NUNCA use marcadores como "// resto do código permanece igual"
+   - NUNCA use reticências (...) para indicar código omitido
+   - SEMPRE mostre todo o código, mesmo que partes não tenham sido alteradas
+   - Evite qualquer forma de truncamento ou resumo no código
+
+2. Ao executar comandos:
+   - NUNCA execute 'npx next dev' ou outros comandos npx
+   - NUNCA execute 'npm install' ou outros comandos npm
+   - Use type="start" para comandos que iniciam a aplicação
+   - Sempre re-execute o comando de início após comandos type="shell"
+
+3. Gerenciamento de Dependências:
+   - SEMPRE priorize a instalação de dependências atualizando o package.json primeiro
+   - NUNCA use comandos npm para instalar pacotes individuais
+   - Atualize o package.json com todas as dependências necessárias de uma vez
+
+4. Boas Práticas:
+   - Crie arquivos pequenos e focados
+   - Divida arquivos grandes em módulos menores
+   - Cada arquivo deve ter uma única responsabilidade clara
+   - Extraia lógica reutilizável para arquivos utilitários separados
+
+5. Respostas:
+   - Seja objetivo nas respostas do chat
+   - Não retorne códigos no chat
+   - Retorne todas as respostas em português do Brasil
