@@ -1,15 +1,31 @@
-"use client";
+'use client';
 
-import { create } from "zustand";
-import { ContactFormData } from "@/lib/validations";
+import type { ContactFormData } from '@/lib/validations';
+import { create } from 'zustand';
 
 interface ContactState {
   showContactForm: boolean;
   isSubmitting: boolean;
-  formData: Partial<ContactFormData> & { id?: string } | null;
+  formData:
+    | (Partial<ContactFormData> & {
+        id?: string;
+        company?: {
+          id: string;
+          name: string;
+        };
+      })
+    | null;
   setShowContactForm: (show: boolean) => void;
   setIsSubmitting: (submitting: boolean) => void;
-  setFormData: (data: Partial<ContactFormData> & { id?: string }) => void;
+  setFormData: (
+    data: Partial<ContactFormData> & {
+      id?: string;
+      company?: {
+        id: string;
+        name: string;
+      };
+    },
+  ) => void;
   handleSubmit: (data: ContactFormData) => Promise<void>;
   reset: () => void;
 }
@@ -21,12 +37,11 @@ export const useContactStore = create<ContactState>((set, get) => ({
 
   setShowContactForm: (show) => {
     if (!show) {
-      // Reset state when closing modal
       get().reset();
     }
     set({ showContactForm: show });
   },
-  
+
   setIsSubmitting: (submitting) => set({ isSubmitting: submitting }),
   setFormData: (data) => set({ formData: data }),
 
@@ -36,18 +51,19 @@ export const useContactStore = create<ContactState>((set, get) => ({
       const currentFormData = get().formData;
       const isEditing = Boolean(currentFormData?.id);
 
-      // Create or update contact
       const response = await fetch(
-        `/api/contacts${isEditing ? `/${currentFormData.id}` : ''}`, 
+        `/api/contacts${isEditing && currentFormData?.id ? `/${currentFormData.id}` : ''}`,
         {
-          method: isEditing ? "PATCH" : "POST",
-          headers: { "Content-Type": "application/json" },
+          method: isEditing ? 'PATCH' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
-        }
+        },
       );
 
       if (!response.ok) {
-        throw new Error(isEditing ? "Erro ao atualizar contato" : "Erro ao cadastrar contato");
+        throw new Error(
+          isEditing ? 'Erro ao atualizar contato' : 'Erro ao cadastrar contato',
+        );
       }
 
       set({ showContactForm: false });
@@ -60,10 +76,10 @@ export const useContactStore = create<ContactState>((set, get) => ({
   },
 
   reset: () => {
-    set({ 
-      showContactForm: false, 
-      isSubmitting: false, 
-      formData: null 
+    set({
+      showContactForm: false,
+      isSubmitting: false,
+      formData: null,
     });
   },
 }));

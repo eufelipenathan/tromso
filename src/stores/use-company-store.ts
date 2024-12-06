@@ -7,7 +7,7 @@ import { useCompanyContactsStore } from "./use-company-contacts-store";
 interface CompanyState {
   showCompanyForm: boolean;
   isSubmitting: boolean;
-  formData: (Partial<CompanyFormData> & { id?: string }) | null;
+  formData: Partial<CompanyFormData> & { id?: string } | null;
   setShowCompanyForm: (show: boolean) => void;
   setIsSubmitting: (submitting: boolean) => void;
   setFormData: (data: Partial<CompanyFormData> & { id?: string }) => void;
@@ -27,7 +27,7 @@ export const useCompanyStore = create<CompanyState>((set, get) => ({
     }
     set({ showCompanyForm: show });
   },
-
+  
   setIsSubmitting: (submitting) => set({ isSubmitting: submitting }),
   setFormData: (data) => set({ formData: data }),
 
@@ -39,7 +39,7 @@ export const useCompanyStore = create<CompanyState>((set, get) => ({
 
       // Create or update company
       const response = await fetch(
-        `/api/companies${isEditing ? `/${currentFormData.id}` : ""}`,
+        `/api/companies${isEditing ? `/${currentFormData.id}` : ''}`, 
         {
           method: isEditing ? "PATCH" : "POST",
           headers: { "Content-Type": "application/json" },
@@ -48,17 +48,14 @@ export const useCompanyStore = create<CompanyState>((set, get) => ({
       );
 
       if (!response.ok) {
-        throw new Error(
-          isEditing ? "Erro ao atualizar empresa" : "Erro ao cadastrar empresa"
-        );
+        throw new Error(isEditing ? "Erro ao atualizar empresa" : "Erro ao cadastrar empresa");
       }
 
       const company = await response.json();
 
       // Handle temporary contacts if creating new company
       if (!isEditing) {
-        const temporaryContacts =
-          useCompanyContactsStore.getState().temporaryContacts;
+        const temporaryContacts = useCompanyContactsStore.getState().temporaryContacts;
         if (temporaryContacts.length > 0) {
           await Promise.all(
             temporaryContacts.map((contact) =>
@@ -85,10 +82,10 @@ export const useCompanyStore = create<CompanyState>((set, get) => ({
   },
 
   reset: () => {
-    set({
-      showCompanyForm: false,
-      isSubmitting: false,
-      formData: null,
+    set({ 
+      showCompanyForm: false, 
+      isSubmitting: false, 
+      formData: null 
     });
     // Reset contacts store as well
     useCompanyContactsStore.getState().reset();

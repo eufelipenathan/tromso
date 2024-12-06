@@ -10,8 +10,7 @@ import { useCompanyContactsStore } from "@/stores/use-company-contacts-store";
 import { usePreloadFields } from "@/hooks/use-preload-fields";
 
 export function CompanyList() {
-  const { showCompanyForm, isSubmitting, setShowCompanyForm, handleSubmit } =
-    useCompanyStore();
+  const { showCompanyForm, isSubmitting, setShowCompanyForm, handleSubmit } = useCompanyStore();
   const { temporaryContacts } = useCompanyContactsStore();
   const { isReady, error } = usePreloadFields("company");
   const { toast } = useToast();
@@ -21,7 +20,7 @@ export function CompanyList() {
       toast({
         variant: "destructive",
         title: "Erro",
-        description: "Não foi possível carregar o formulário. Tente novamente.",
+        description: "Não foi possível carregar o formulário. Tente novamente."
       });
       return;
     }

@@ -11,8 +11,7 @@ import { useContactStore } from "@/stores/use-contact-store";
 import { usePreloadFields } from "@/hooks/use-preload-fields";
 
 export function ContactList() {
-  const { showContactForm, isSubmitting, setShowContactForm, handleSubmit } =
-    useContactStore();
+  const { showContactForm, isSubmitting, formData, setShowContactForm, handleSubmit } = useContactStore();
   const { isReady, error } = usePreloadFields("contact");
   const { toast } = useToast();
 
@@ -21,7 +20,7 @@ export function ContactList() {
       toast({
         variant: "destructive",
         title: "Erro",
-        description: "Não foi possível carregar o formulário. Tente novamente.",
+        description: "Não foi possível carregar o formulário. Tente novamente."
       });
       return;
     }
@@ -33,13 +32,13 @@ export function ContactList() {
       await handleSubmit(data);
       toast({
         title: "Sucesso",
-        description: "Contato cadastrado com sucesso",
+        description: `Contato ${formData?.id ? "atualizado" : "cadastrado"} com sucesso`,
       });
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Erro",
-        description: "Ocorreu um erro ao cadastrar o contato",
+        description: `Ocorreu um erro ao ${formData?.id ? "atualizar" : "cadastrar"} o contato`,
       });
     }
   };
@@ -59,11 +58,14 @@ export function ContactList() {
         <FormModal
           open={showContactForm}
           onClose={() => setShowContactForm(false)}
-          title="Novo Contato"
+          title={formData?.id ? "Editar Contato" : "Novo Contato"}
           isSubmitting={isSubmitting}
           formId="contact-form"
         >
-          <ContactForm onSubmit={onSubmit} />
+          <ContactForm 
+            onSubmit={onSubmit}
+            initialData={formData || undefined}
+          />
         </FormModal>
       )}
     </div>

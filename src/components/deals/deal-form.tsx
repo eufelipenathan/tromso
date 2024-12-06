@@ -22,6 +22,8 @@ import { CompanyForm } from "@/components/companies/company-form";
 import { ContactForm } from "@/components/contacts/contact-form";
 import { cn } from "@/lib/utils";
 import { CustomFields } from "@/components/form/custom-fields";
+import { handleFormSubmitWithPropagation } from "@/lib/event-handlers";
+import { FORM_MODES } from "@/lib/form-modes";
 
 const dealSchema = z.object({
   title: z.string().min(1, "Título é obrigatório"),
@@ -223,18 +225,26 @@ export function DealForm({
     e.target.value = formatValue(value);
   };
 
-  const handleFormSubmit = async (data: DealFormData) => {
-    await onSubmit({
-      ...data,
-      value: parseFloat(data.value || "0") / 100,
-    });
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    await handleFormSubmitWithPropagation<DealFormData>(
+      e,
+      "deal-form",
+      async (data) => {
+        await onSubmit({
+          ...data,
+          value: parseFloat(data.value || "0") / 100,
+        });
+      },
+      undefined,
+      (error) => console.error("Erro ao processar formulário:", error)
+    );
   };
 
   return (
     <>
       <form
         id="deal-form"
-        onSubmit={handleSubmit(handleFormSubmit)}
+        onSubmit={handleFormSubmit}
         className="space-y-6"
       >
         <div className="grid gap-4 grid-cols-2">
@@ -360,7 +370,7 @@ export function DealForm({
                     </div>
                   ) : (
                     <>
-                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text -y-1/2 text-muted-foreground" />
                       <Input
                         value={contactSearchTerm}
                         onChange={(e) => {
@@ -527,10 +537,7 @@ export function DealForm({
         isSubmitting={isSubmittingCompany}
         formId="company-form"
       >
-        <CompanyForm
-          onSubmit={handleCompanySubmit}
-          initialData={{ name: companySearchTerm }}
-        />
+        <CompanyForm onSubmit={handleCompanySubmit} />
       </FormModal>
 
       <FormModal
@@ -544,6 +551,7 @@ export function DealForm({
           onSubmit={handleContactSubmit}
           initialData={{ name: contactSearchTerm }}
           selectedCompany={selectedCompany!}
+          mode={FORM_MODES.DEAL}
         />
       </FormModal>
     </>

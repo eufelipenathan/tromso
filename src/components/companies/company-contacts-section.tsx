@@ -1,19 +1,16 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Contact } from "@prisma/client";
-import { Search, Plus } from "lucide-react";
-import {
-  Input,
-  Button,
-  FormModal,
-  ConfirmationDialog,
-  FormSection,
-} from "@/components/ui";
-import { ContactForm } from "@/components/contacts/contact-form";
-import { useToast } from "@/hooks/use-toast";
-import { ContactCard } from "./contact-card";
-import { useCompanyContactsStore } from "@/stores/use-company-contacts-store";
+import { ContactForm } from '@/components/contacts/contact-form';
+import { Button } from '@/components/ui/button';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { FormModal } from '@/components/ui/form-modal';
+import { FormSection } from '@/components/ui/form-section';
+import { Input } from '@/components/ui/input';
+import { FORM_MODES } from '@/lib/form-modes';
+import type { ContactFormData } from '@/lib/validations';
+import { useCompanyContactsStore } from '@/stores/use-company-contacts-store';
+import { Plus, Search } from 'lucide-react';
+import { ContactCard } from './contact-card';
 
 export function CompanyContactsSection() {
   const {
@@ -36,73 +33,35 @@ export function CompanyContactsSection() {
     removeSelectedContact,
   } = useCompanyContactsStore();
 
-  const { toast } = useToast();
-
-  useEffect(() => {
-    const searchContacts = async () => {
-      if (!searchTerm) {
-        setSearchResults([]);
-        return;
-      }
-
-      try {
-        const response = await fetch(`/api/contacts/search?q=${searchTerm}`);
-        if (!response.ok) throw new Error("Erro ao buscar contatos");
-        const data = await response.json();
-        setSearchResults(data);
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Erro",
-          description: "Falha ao buscar contatos",
-        });
-      }
-    };
-
-    const debounce = setTimeout(searchContacts, 300);
-    return () => clearTimeout(debounce);
-  }, [searchTerm, setSearchResults, toast]);
-
-  const handleDissociateContact = async (contact: Contact) => {
-    try {
-      const response = await fetch(`/api/contacts/${contact.id}/dissociate`, {
-        method: "POST",
-      });
-
-      if (!response.ok) throw new Error("Erro ao remover contato");
-
-      removeSelectedContact(contact.id);
-      toast({
-        title: "Sucesso",
-        description: "Contato removido com sucesso",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Falha ao remover contato",
-      });
-    }
-  };
-
   const handleNewContactClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setShowContactForm(true);
   };
 
-  const handleEditClick = (e: React.MouseEvent, contact: Contact) => {
+  const handleEditClick = (e: React.MouseEvent, contact: ContactFormData) => {
     e.preventDefault();
     e.stopPropagation();
     setSelectedContact(contact);
     setShowContactForm(true);
   };
 
-  const handleRemoveClick = (e: React.MouseEvent, contact: Contact) => {
+  const handleRemoveClick = (e: React.MouseEvent, contact: ContactFormData) => {
     e.preventDefault();
     e.stopPropagation();
     setSelectedContact(contact);
     setShowDeleteDialog(true);
+  };
+
+  const handleContactSubmit = async (data: ContactFormData) => {
+    if (selectedContact?.id.startsWith('temp_')) {
+      updateTemporaryContact(selectedContact.id, data);
+    } else if (!selectedContact) {
+      addTemporaryContact(data);
+    }
+    setShowContactForm(false);
+    setSelectedContact(null);
+    setSearchTerm('');
   };
 
   return (
@@ -139,7 +98,7 @@ export function CompanyContactsSection() {
                     className="w-full px-4 py-2 text-left hover:bg-accent"
                     onClick={() => {
                       setSelectedContact(contact);
-                      setSearchTerm("");
+                      setSearchTerm('');
                       setSearchResults([]);
                     }}
                   >
@@ -189,24 +148,16 @@ export function CompanyContactsSection() {
         onClose={() => {
           setShowContactForm(false);
           setSelectedContact(null);
-          setSearchTerm("");
+          setSearchTerm('');
         }}
-        title={selectedContact ? "Editar Contato" : "Novo Contato"}
+        title={selectedContact ? 'Editar Contato' : 'Novo Contato'}
         isSubmitting={isLoading}
         formId="contact-form"
       >
         <ContactForm
           initialData={selectedContact || { name: searchTerm }}
-          onSubmit={async (data) => {
-            if (selectedContact?.id.startsWith("temp_")) {
-              updateTemporaryContact(selectedContact.id, data);
-            } else if (!selectedContact) {
-              addTemporaryContact(data);
-            }
-            setShowContactForm(false);
-            setSelectedContact(null);
-            setSearchTerm("");
-          }}
+          onSubmit={handleContactSubmit}
+          mode={FORM_MODES.COMPANY_NEW}
         />
       </FormModal>
 
@@ -218,7 +169,7 @@ export function CompanyContactsSection() {
         confirmText="Remover"
         onConfirm={() => {
           if (selectedContact) {
-            if (selectedContact.id.startsWith("temp_")) {
+            if (selectedContact.id.startsWith('temp_')) {
               removeTemporaryContact(selectedContact.id);
             } else {
               removeSelectedContact(selectedContact.id);

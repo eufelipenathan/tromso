@@ -52,7 +52,7 @@ export async function PATCH(
     const cleanData = Object.fromEntries(
       Object.entries(body).map(([key, value]) => [
         key,
-        value === "" ? null : value,
+        value === "" ? null : value
       ])
     );
 

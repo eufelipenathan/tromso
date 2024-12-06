@@ -126,7 +126,7 @@ export function FormModal({
         open={showConfirmClose}
         onOpenChange={setShowConfirmClose}
         title="Cancelar cadastro"
-        description="Existem contatos que serão perdidos ao cancelar. Deseja continuar?"
+        description="Existem contatos temporários que serão perdidos ao cancelar. Deseja continuar?"
         confirmText="Sim, cancelar"
         onConfirm={() => {
           setShowConfirmClose(false);

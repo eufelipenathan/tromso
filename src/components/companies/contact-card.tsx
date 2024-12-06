@@ -17,16 +17,18 @@ export function ContactCard({ contact, onEdit, onRemove }: ContactCardProps) {
       <div className="flex items-center gap-4 overflow-hidden min-w-0">
         <div className="flex items-center gap-1.5 min-w-[120px] max-w-[180px]">
           <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-          <span className="text-sm font-medium truncate">{contact.name}</span>
+          <span className="text-sm font-medium truncate">
+            {contact.name}
+          </span>
         </div>
-
+        
         {contact.position && (
           <div className="flex items-center text-xs text-muted-foreground min-w-0">
             <Briefcase className="mr-1.5 h-3.5 w-3.5 shrink-0" />
             <span className="truncate max-w-[120px]">{contact.position}</span>
           </div>
         )}
-
+        
         {contact.email && (
           <div className="flex items-center min-w-0">
             <Mail className="mr-1.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
@@ -38,7 +40,7 @@ export function ContactCard({ contact, onEdit, onRemove }: ContactCardProps) {
             </a>
           </div>
         )}
-
+        
         {contact.phone && (
           <div className="flex items-center text-xs text-muted-foreground">
             <Phone className="mr-1.5 h-3.5 w-3.5 shrink-0" />

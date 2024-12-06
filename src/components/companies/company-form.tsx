@@ -11,6 +11,7 @@ import { STATES } from "@/lib/constants";
 import { CustomFields } from "@/components/form/custom-fields";
 import { CompanyContactsSection } from "./company-contacts-section";
 import { useCompanyStore } from "@/stores/use-company-store";
+import { handleFormSubmitWithPropagation } from "@/lib/event-handlers";
 
 interface CompanyFormProps {
   onSubmit: (data: CompanyFormData) => Promise<void>;
@@ -41,37 +42,41 @@ export function CompanyForm({ onSubmit }: CompanyFormProps) {
       city: null,
       state: null,
       mailbox: null,
-    },
+    }
   });
 
   const { formData, setFormData } = useCompanyStore();
 
   useEffect(() => {
     if (formData) {
-      // Initialize form with existing data
       Object.entries(formData).forEach(([key, value]) => {
-        if (key !== "id") {
-          // Skip id field
+        if (key !== 'id') {
           setValue(key as keyof CompanyFormData, value);
         }
       });
     } else {
-      // Reset form when no data
       resetForm();
     }
   }, [formData, setValue, resetForm]);
 
-  const handleFormSubmit = async (data: CompanyFormData) => {
-    // Clean up empty strings to null
-    const cleanData = Object.fromEntries(
-      Object.entries(data).map(([key, value]) => [
-        key,
-        value === "" ? null : value,
-      ])
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    await handleFormSubmitWithPropagation<CompanyFormData>(
+      e,
+      "company-form",
+      async (data) => {
+        const cleanData = Object.fromEntries(
+          Object.entries(data).map(([key, value]) => [
+            key,
+            value === "" ? null : value
+          ])
+        );
+        
+        setFormData({ ...formData, ...cleanData });
+        await onSubmit(cleanData as CompanyFormData);
+      },
+      () => resetForm(),
+      (error) => console.error("Erro ao processar formulário:", error)
     );
-
-    setFormData({ ...formData, ...cleanData });
-    await onSubmit(cleanData as CompanyFormData);
   };
 
   const handleCNPJChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -105,13 +110,13 @@ export function CompanyForm({ onSubmit }: CompanyFormProps) {
         if (!data.erro) {
           setValue("street", data.logradouro || null);
           handleFieldChange("street", data.logradouro || null);
-
+          
           setValue("neighborhood", data.bairro || null);
           handleFieldChange("neighborhood", data.bairro || null);
-
+          
           setValue("city", data.localidade || null);
           handleFieldChange("city", data.localidade || null);
-
+          
           setValue("state", data.uf || null);
           handleFieldChange("state", data.uf || null);
         }
@@ -130,7 +135,7 @@ export function CompanyForm({ onSubmit }: CompanyFormProps) {
   return (
     <form
       id="company-form"
-      onSubmit={handleSubmit(handleFormSubmit)}
+      onSubmit={handleFormSubmit}
       className="space-y-6"
     >
       <FormSection title="Informações básicas" defaultOpen>

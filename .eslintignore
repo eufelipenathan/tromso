@@ -1,0 +1,24 @@
+# Ignorar pastas de build e dependências
+node_modules/
+.next/
+dist/
+build/
+
+# Ignorar arquivos de configuração e ambiente
+.env
+.env.local
+.env.development
+.env.production
+
+# Ignorar arquivos gerados pelo Prisma
+prisma/migrations/
+
+# Ignorar arquivos de lock e de logs
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+*.log
+
+# Ignorar outros arquivos que não precisam ser lintados
+analyze_nextjs.py
+.vscode/

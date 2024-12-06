@@ -16,6 +16,6 @@ export function usePreloadFields(entityType: "company" | "contact" | "deal") {
   return {
     isReady,
     sections,
-    error,
+    error
   };
 }
