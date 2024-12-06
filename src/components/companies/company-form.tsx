@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, Input, Label, FormSection } from "@/components/ui";
+import { Input, Label, FormSection } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { companySchema, type CompanyFormData } from "@/lib/validations";
 import { cnpjMask, phoneMask, cepMask } from "@/lib/masks";
@@ -14,10 +14,9 @@ import { useEffect } from "react";
 
 interface CompanyFormProps {
   onSubmit: (data: CompanyFormData) => Promise<void>;
-  initialData?: Partial<CompanyFormData>;
 }
 
-export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
+export function CompanyForm({ onSubmit }: CompanyFormProps) {
   const {
     register,
     handleSubmit,
@@ -25,42 +24,74 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
     setValue,
     watch,
     trigger,
+    reset: resetForm,
   } = useForm<CompanyFormData>({
     resolver: zodResolver(companySchema),
-    defaultValues: initialData,
+    defaultValues: {
+      cnpj: null,
+      email: null,
+      phone: null,
+      website: null,
+      cep: null,
+      street: null,
+      number: null,
+      complement: null,
+      neighborhood: null,
+      city: null,
+      state: null,
+      mailbox: null,
+    },
   });
 
   const { formData, setFormData } = useCompanyStore();
 
   useEffect(() => {
     if (formData) {
+      // Initialize form with existing data
       Object.entries(formData).forEach(([key, value]) => {
-        setValue(key as keyof CompanyFormData, value);
+        if (key !== "id") {
+          // Skip id field
+          setValue(key as keyof CompanyFormData, value);
+        }
       });
+    } else {
+      // Reset form when no data
+      resetForm();
     }
-  }, [formData, setValue]);
+  }, [formData, setValue, resetForm]);
 
   const handleFormSubmit = async (data: CompanyFormData) => {
-    setFormData(data);
-    await onSubmit(data);
+    // Clean up empty strings to null
+    const cleanData = Object.fromEntries(
+      Object.entries(data).map(([key, value]) => [
+        key,
+        value === "" ? null : value,
+      ])
+    );
+
+    setFormData({ ...formData, ...cleanData });
+    await onSubmit(cleanData as CompanyFormData);
   };
 
   const handleCNPJChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const masked = cnpjMask(value);
-    setValue("cnpj", masked, { shouldValidate: false });
+    setValue("cnpj", masked || null);
+    handleFieldChange("cnpj", masked || null);
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const masked = phoneMask(value);
-    setValue("phone", masked, { shouldValidate: false });
+    setValue("phone", masked || null);
+    handleFieldChange("phone", masked || null);
   };
 
   const handleCEPChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const masked = cepMask(value);
-    setValue("cep", masked, { shouldValidate: false });
+    setValue("cep", masked || null);
+    handleFieldChange("cep", masked || null);
   };
 
   const handleCEPBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
@@ -71,10 +102,17 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
         const data = await response.json();
 
         if (!data.erro) {
-          setValue("street", data.logradouro);
-          setValue("neighborhood", data.bairro);
-          setValue("city", data.localidade);
-          setValue("state", data.uf);
+          setValue("street", data.logradouro || null);
+          handleFieldChange("street", data.logradouro || null);
+
+          setValue("neighborhood", data.bairro || null);
+          handleFieldChange("neighborhood", data.bairro || null);
+
+          setValue("city", data.localidade || null);
+          handleFieldChange("city", data.localidade || null);
+
+          setValue("state", data.uf || null);
+          handleFieldChange("state", data.uf || null);
         }
       } catch (error) {
         console.error("Erro ao buscar CEP:", error);
@@ -119,10 +157,7 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
             <Input
               id="cnpj"
               value={watch("cnpj") || ""}
-              onChange={(e) => {
-                handleCNPJChange(e);
-                handleFieldChange("cnpj", e.target.value);
-              }}
+              onChange={handleCNPJChange}
               onBlur={() => trigger("cnpj")}
               placeholder="00.000.000/0000-00"
               className={cn(
@@ -159,10 +194,7 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
             <Input
               id="phone"
               value={watch("phone") || ""}
-              onChange={(e) => {
-                handlePhoneChange(e);
-                handleFieldChange("phone", e.target.value);
-              }}
+              onChange={handlePhoneChange}
               onBlur={() => trigger("phone")}
               placeholder="(00) 00000-0000"
               className={cn(
@@ -206,10 +238,7 @@ export function CompanyForm({ onSubmit, initialData }: CompanyFormProps) {
             <Input
               id="cep"
               value={watch("cep") || ""}
-              onChange={(e) => {
-                handleCEPChange(e);
-                handleFieldChange("cep", e.target.value);
-              }}
+              onChange={handleCEPChange}
               onBlur={handleCEPBlur}
               placeholder="00000-000"
               className={cn(

@@ -1,13 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { z } from "zod";
-
-const updateContactSchema = z.object({
-  name: z.string().min(1).optional(),
-  email: z.string().email().optional().nullable(),
-  phone: z.string().optional(),
-  position: z.string().optional(),
-});
+import { contactSchema } from "@/lib/validations";
 
 export async function GET(
   request: Request,
@@ -53,17 +46,26 @@ export async function PATCH(
 ) {
   try {
     const json = await request.json();
-    const body = updateContactSchema.parse(json);
+    const body = contactSchema.parse(json);
+
+    // Clean up empty strings to null
+    const cleanData = Object.fromEntries(
+      Object.entries(body).map(([key, value]) => [
+        key,
+        value === "" ? null : value,
+      ])
+    );
 
     const contact = await prisma.contact.update({
       where: { id: params.id },
-      data: body,
+      data: cleanData,
     });
 
     return NextResponse.json(contact);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ errors: error.errors }, { status: 400 });
+    console.error("Error updating contact:", error);
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
     return NextResponse.json(
       { error: "Internal Server Error" },

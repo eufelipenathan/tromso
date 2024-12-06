@@ -7,11 +7,26 @@ import { CompanyTable } from "./company-table";
 import { useToast } from "@/hooks/use-toast";
 import { useCompanyStore } from "@/stores/use-company-store";
 import { useCompanyContactsStore } from "@/stores/use-company-contacts-store";
+import { usePreloadFields } from "@/hooks/use-preload-fields";
 
 export function CompanyList() {
-  const { showCompanyForm, isSubmitting, setShowCompanyForm, handleSubmit } = useCompanyStore();
+  const { showCompanyForm, isSubmitting, setShowCompanyForm, handleSubmit } =
+    useCompanyStore();
   const { temporaryContacts } = useCompanyContactsStore();
+  const { isReady, error } = usePreloadFields("company");
   const { toast } = useToast();
+
+  const handleOpenForm = () => {
+    if (!isReady) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Não foi possível carregar o formulário. Tente novamente.",
+      });
+      return;
+    }
+    setShowCompanyForm(true);
+  };
 
   const onSubmit = async (data: any) => {
     try {
@@ -32,7 +47,7 @@ export function CompanyList() {
   return (
     <div>
       <div className="mb-6">
-        <Button onClick={() => setShowCompanyForm(true)}>
+        <Button onClick={handleOpenForm}>
           <Plus className="mr-2 h-4 w-4" />
           Nova Empresa
         </Button>
@@ -40,16 +55,18 @@ export function CompanyList() {
 
       <CompanyTable />
 
-      <FormModal
-        open={showCompanyForm}
-        onClose={() => setShowCompanyForm(false)}
-        title="Nova Empresa"
-        isSubmitting={isSubmitting}
-        formId="company-form"
-        hasTemporaryData={temporaryContacts.length > 0}
-      >
-        <CompanyForm onSubmit={onSubmit} />
-      </FormModal>
+      {showCompanyForm && isReady && (
+        <FormModal
+          open={showCompanyForm}
+          onClose={() => setShowCompanyForm(false)}
+          title="Nova Empresa"
+          isSubmitting={isSubmitting}
+          formId="company-form"
+          hasTemporaryData={temporaryContacts.length > 0}
+        >
+          <CompanyForm onSubmit={onSubmit} />
+        </FormModal>
+      )}
     </div>
   );
 }

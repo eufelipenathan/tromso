@@ -6,18 +6,25 @@ import { IconButton, Menu, MenuItem } from "@mui/material";
 import { MoreVert as MoreVertIcon } from "@mui/icons-material";
 import { useToast } from "@/hooks/use-toast";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { useRouter } from "next/navigation";
 
 export function ContactActions(params: GridRenderCellParams) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { toast } = useToast();
-  
+  const router = useRouter();
+
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleProfile = () => {
+    router.push(`/contatos/${params.row.id}`);
+    handleClose();
   };
 
   const handleEdit = () => {
@@ -60,16 +67,28 @@ export function ContactActions(params: GridRenderCellParams) {
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={handleClose}
-        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        transformOrigin={{ horizontal: "left", vertical: "top" }}
+        anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
+        slotProps={{
+          paper: {
+            sx: {
+              mt: 1,
+              "& .MuiMenuItem-root": {
+                fontSize: "0.875rem",
+                py: 1,
+              },
+            },
+          },
+        }}
       >
+        <MenuItem onClick={handleProfile}>Perfil</MenuItem>
         <MenuItem onClick={handleEdit}>Editar</MenuItem>
-        <MenuItem 
+        <MenuItem
           onClick={() => {
             handleClose();
             setShowDeleteDialog(true);
-          }} 
-          sx={{ color: 'error.main' }}
+          }}
+          sx={{ color: "error.main" }}
         >
           Excluir
         </MenuItem>
