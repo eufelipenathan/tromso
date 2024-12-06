@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
-import { Search, Plus, Edit2, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Contact } from "@prisma/client";
+import { Search, Plus } from "lucide-react";
 import {
   Input,
   Button,
@@ -9,10 +10,10 @@ import {
   ConfirmationDialog,
   FormSection,
 } from "@/components/ui";
-import { Contact } from "@prisma/client";
-import { useCompanyContactsStore } from "@/stores/use-company-contacts-store";
 import { ContactForm } from "@/components/contacts/contact-form";
 import { useToast } from "@/hooks/use-toast";
+import { ContactCard } from "./contact-card";
+import { useCompanyContactsStore } from "@/stores/use-company-contacts-store";
 
 export function CompanyContactsSection() {
   const {
@@ -161,73 +162,23 @@ export function CompanyContactsSection() {
         </div>
 
         {(temporaryContacts.length > 0 || selectedContacts.length > 0) && (
-          <div className="space-y-1">
+          <div className="grid grid-cols-2 gap-4">
             {temporaryContacts.map((contact) => (
-              <div
+              <ContactCard
                 key={contact.id}
-                className="flex items-center justify-between p-2 border rounded-lg"
-              >
-                <div>
-                  <span className="font-medium">{contact.name}</span>
-                  {contact.email && (
-                    <span className="block text-sm text-muted-foreground">
-                      {contact.email}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={(e) => handleEditClick(e, contact)}
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={(e) => handleRemoveClick(e, contact)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+                contact={contact}
+                onEdit={(e) => handleEditClick(e, contact)}
+                onRemove={(e) => handleRemoveClick(e, contact)}
+              />
             ))}
 
             {selectedContacts.map((contact) => (
-              <div
+              <ContactCard
                 key={contact.id}
-                className="flex items-center justify-between p-2 border rounded-lg"
-              >
-                <div>
-                  <span className="font-medium">{contact.name}</span>
-                  {contact.email && (
-                    <span className="block text-sm text-muted-foreground">
-                      {contact.email}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={(e) => handleEditClick(e, contact)}
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={(e) => handleRemoveClick(e, contact)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+                contact={contact}
+                onEdit={(e) => handleEditClick(e, contact)}
+                onRemove={(e) => handleRemoveClick(e, contact)}
+              />
             ))}
           </div>
         )}

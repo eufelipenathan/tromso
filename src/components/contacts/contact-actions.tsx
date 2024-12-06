@@ -7,12 +7,14 @@ import { MoreVert as MoreVertIcon } from "@mui/icons-material";
 import { useToast } from "@/hooks/use-toast";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { useRouter } from "next/navigation";
+import { useContactStore } from "@/stores/use-contact-store";
 
 export function ContactActions(params: GridRenderCellParams) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const { setShowContactForm, setFormData } = useContactStore();
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -28,7 +30,8 @@ export function ContactActions(params: GridRenderCellParams) {
   };
 
   const handleEdit = () => {
-    // TODO: Implement edit functionality
+    setFormData(params.row);
+    setShowContactForm(true);
     handleClose();
   };
 

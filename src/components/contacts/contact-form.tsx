@@ -33,25 +33,44 @@ export function ContactForm({
     formState: { errors },
     setValue,
     watch,
+    reset: resetForm,
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
     defaultValues: {
-      ...initialData,
-      companyId: selectedCompany?.id,
+      name: initialData?.name || "",
+      email: initialData?.email || null,
+      phone: initialData?.phone || null,
+      position: initialData?.position || null,
+      companyId: selectedCompany?.id || initialData?.companyId || "",
     },
   });
 
+  useEffect(() => {
+    if (selectedCompany) {
+      setValue("companyId", selectedCompany.id);
+    }
+  }, [selectedCompany, setValue]);
+
   const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Previne a propagação do submit
-    e.stopPropagation(); // Garante que o evento não se propague
+    e.preventDefault();
+    e.stopPropagation();
 
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
 
+    // Clean up empty strings to null
+    const cleanData = Object.fromEntries(
+      Object.entries(data).map(([key, value]) => [
+        key,
+        value === "" ? null : value,
+      ])
+    );
+
     try {
       setIsSubmitting(true);
-      await onSubmit(data as ContactFormData);
+      await onSubmit(cleanData as ContactFormData);
+      resetForm();
     } catch (error) {
       toast({
         variant: "destructive",
@@ -66,14 +85,8 @@ export function ContactForm({
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const masked = phoneMask(value);
-    setValue("phone", masked, { shouldValidate: false });
+    setValue("phone", masked || null);
   };
-
-  useEffect(() => {
-    if (selectedCompany) {
-      setValue("companyId", selectedCompany.id);
-    }
-  }, [selectedCompany, setValue]);
 
   return (
     <form id="contact-form" onSubmit={handleFormSubmit} className="space-y-6">

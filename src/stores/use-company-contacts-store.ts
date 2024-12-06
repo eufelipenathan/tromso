@@ -1,6 +1,9 @@
+"use client";
+
 import { create } from "zustand";
 import { v4 as uuidv4 } from "uuid";
 import { Contact } from "@prisma/client";
+import { ContactFormData } from "@/lib/validations";
 
 interface ContactState {
   temporaryContacts: Contact[];
@@ -11,9 +14,9 @@ interface ContactState {
   selectedContact: Contact | null;
   showDeleteDialog: boolean;
   isLoading: boolean;
-  addTemporaryContact: (contact: Omit<Contact, "id" | "companyId">) => void;
+  addTemporaryContact: (data: ContactFormData) => void;
   removeTemporaryContact: (id: string) => void;
-  updateTemporaryContact: (id: string, data: Partial<Contact>) => void;
+  updateTemporaryContact: (id: string, data: ContactFormData) => void;
   addSelectedContact: (contact: Contact) => void;
   removeSelectedContact: (id: string) => void;
   setShowContactForm: (show: boolean) => void;
@@ -35,12 +38,12 @@ export const useCompanyContactsStore = create<ContactState>((set) => ({
   showDeleteDialog: false,
   isLoading: false,
 
-  addTemporaryContact: (contact) =>
+  addTemporaryContact: (data) =>
     set((state) => ({
       temporaryContacts: [
         ...state.temporaryContacts,
         {
-          ...contact,
+          ...data,
           id: `temp_${uuidv4()}`,
           companyId: "",
           createdAt: new Date(),
@@ -61,7 +64,11 @@ export const useCompanyContactsStore = create<ContactState>((set) => ({
     set((state) => ({
       temporaryContacts: state.temporaryContacts.map((contact) =>
         contact.id === id
-          ? { ...contact, ...data, updatedAt: new Date() }
+          ? {
+              ...contact,
+              ...data,
+              updatedAt: new Date(),
+            }
           : contact
       ),
     })),

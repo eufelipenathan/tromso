@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input, Label, FormSection } from "@/components/ui";
@@ -10,7 +11,6 @@ import { STATES } from "@/lib/constants";
 import { CustomFields } from "@/components/form/custom-fields";
 import { CompanyContactsSection } from "./company-contacts-section";
 import { useCompanyStore } from "@/stores/use-company-store";
-import { useEffect } from "react";
 
 interface CompanyFormProps {
   onSubmit: (data: CompanyFormData) => Promise<void>;
@@ -28,6 +28,7 @@ export function CompanyForm({ onSubmit }: CompanyFormProps) {
   } = useForm<CompanyFormData>({
     resolver: zodResolver(companySchema),
     defaultValues: {
+      name: "",
       cnpj: null,
       email: null,
       phone: null,
